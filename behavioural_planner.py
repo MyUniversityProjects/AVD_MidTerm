@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 # Stop speed threshold
-from behavioural_states import StateManager
+from behavioural_states import StateManager, DecelerateToPointState
 
 STOP_THRESHOLD = 0.02
 
@@ -37,6 +37,9 @@ class BehaviouralPlanner:
 
     def set_goal_index(self, goal_index):
         self._goal_index = goal_index
+
+    def is_decelerating(self):
+        return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
 
     # Handles state transitions and computes the goal state.
     def transition_state(self, waypoints, ego_state, closed_loop_speed):

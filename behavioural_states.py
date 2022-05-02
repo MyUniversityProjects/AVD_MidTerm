@@ -211,6 +211,9 @@ class StateManager:
         self._states = {s.NAME: s for s in states}
         self._state = self._states[self.INIT_STATE_NAME]
 
+    def get_state(self):
+        return self._state
+
     def execute(self, waypoints, ego_state, closed_loop_speed):
         logging.debug(f"{self._state.NAME} STATE (Behavioural Planner)")
         self._state.handle(waypoints, ego_state, closed_loop_speed)
