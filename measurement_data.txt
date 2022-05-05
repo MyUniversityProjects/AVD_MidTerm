@@ -1,0 +1,1057 @@
+[(transform {
+  location {
+    x: 94.98997497558594
+    y: 70.40999603271484
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 94.98997497558594
+    y: 70.40999603271484
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 102.72000122070312
+    y: 52.85001754760742
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 102.72000122070312
+    y: 52.85001754760742
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 85.72999572753906
+    y: 45.779998779296875
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 85.72999572753906
+    y: 45.779998779296875
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 94.9899673461914
+    y: 144.38002014160156
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 94.9899673461914
+    y: 144.38002014160156
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 102.71998596191406
+    y: 126.82001495361328
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 102.71998596191406
+    y: 126.82001495361328
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 85.72998809814453
+    y: 119.75
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 85.72998809814453
+    y: 119.75
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 94.9899673461914
+    y: 209.9199981689453
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 94.9899673461914
+    y: 209.9199981689453
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 1.0
+    y: 1.7310541124970769e-06
+  }
+  rotation {
+    yaw: 9.918209252646193e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 102.71998596191406
+    y: 192.5500030517578
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 102.71998596191406
+    y: 192.5500030517578
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 3.7550926208496094e-06
+    y: -1.0
+  }
+  rotation {
+    yaw: -89.99978637695312
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 85.72998809814453
+    y: 185.2899932861328
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 85.72998809814453
+    y: 185.2899932861328
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 106.11997985839844
+    y: 324.08001708984375
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 106.11997985839844
+    y: 324.08001708984375
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 85.62993621826172
+    y: 316.3500671386719
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 85.62993621826172
+    y: 316.3500671386719
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 75.71001434326172
+    y: 333.3399963378906
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 75.71001434326172
+    y: 333.3399963378906
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 349.6000061035156
+    y: 324.080078125
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 349.6000061035156
+    y: 324.080078125
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 332.0399475097656
+    y: 316.35009765625
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 332.0399475097656
+    y: 316.35009765625
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 324.9700012207031
+    y: 333.3399658203125
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 324.9700012207031
+    y: 333.3399658203125
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 168.8699951171875
+    y: 53.03003692626953
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 168.8699951171875
+    y: 53.03003692626953
+    z: 38.21324157714844
+  }
+  orientation {
+    x: 6.4373016357421875e-06
+    y: -0.9999999403953552
+  }
+  rotation {
+    yaw: -89.99962615966797
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 151.30995178222656
+    y: 45.30007553100586
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 151.30995178222656
+    y: 45.30007553100586
+    z: 38.213260650634766
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: 7.152556804612686e-07
+  }
+  rotation {
+    yaw: 179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 144.2400360107422
+    y: 62.28999710083008
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 144.2400360107422
+    y: 62.28999710083008
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 3.5762786865234375e-06
+    y: 1.0
+  }
+  rotation {
+    yaw: 89.99979400634766
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 331.9900207519531
+    y: 44.88003921508789
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 331.9900207519531
+    y: 44.88003921508789
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 321.7601013183594
+    y: 62.4400749206543
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 321.7601013183594
+    y: 62.4400749206543
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 341.3599853515625
+    y: 12.710039138793945
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 341.3599853515625
+    y: 12.710039138793945
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 348.42999267578125
+    y: -4.279960632324219
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 348.42999267578125
+    y: -4.279960632324219
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 341.2500305175781
+    y: 69.50995635986328
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 341.2500305175781
+    y: 69.50995635986328
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 331.9900207519531
+    y: 118.93003845214844
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 331.9900207519531
+    y: 118.93003845214844
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 321.68011474609375
+    y: 136.1321563720703
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 321.68011474609375
+    y: 136.1321563720703
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 341.2500305175781
+    y: 143.55995178222656
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 341.2500305175781
+    y: 143.55995178222656
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 331.9900207519531
+    y: 184.47003173828125
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 331.9900207519531
+    y: 184.47003173828125
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -0.9999997615814209
+    y: -7.152556804612686e-07
+  }
+  rotation {
+    yaw: -179.9999542236328
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 323.41009521484375
+    y: 202.0300750732422
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 323.41009521484375
+    y: 202.0300750732422
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 5.602836608886719e-06
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 89.99967956542969
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 341.2500305175781
+    y: 209.09996032714844
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 341.2500305175781
+    y: 209.09996032714844
+    z: 38.21420669555664
+  }
+  orientation {
+    x: 1.0
+    y: -4.261057711119065e-06
+  }
+  rotation {
+    yaw: -0.00024414061044808477
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 143.1199951171875
+    y: 4.830009460449219
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 143.1199951171875
+    y: 4.830009460449219
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 160.67999267578125
+    y: 12.559999465942383
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 160.67999267578125
+    y: 12.559999465942383
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 167.75
+    y: -4.429990291595459
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 167.75
+    y: -4.429990291595459
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 77.47999572753906
+    y: 4.829999923706055
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 77.47999572753906
+    y: 4.829999923706055
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 95.04000091552734
+    y: 12.560009956359863
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 95.04000091552734
+    y: 12.560009956359863
+    z: 38.213260650634766
+  }
+  orientation {
+    x: 1.0
+    y: 1.1984225238848012e-06
+  }
+  rotation {
+    yaw: 6.866455078125e-05
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 102.11000061035156
+    y: -4.429990291595459
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 102.11000061035156
+    y: -4.429990291595459
+    z: 38.21420669555664
+  }
+  orientation {
+    x: -2.0265579223632812e-06
+    y: -0.9999998807907104
+  }
+  rotation {
+    yaw: -90.00011444091797
+  }
+}
+, 0, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform']), (transform {
+  location {
+    x: 323.79998779296875
+    y: 4.980000019073486
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, <class 'carla_server_pb2.TrafficLight'>, transform {
+  location {
+    x: 323.79998779296875
+    y: 4.980000019073486
+    z: 38.21324157714844
+  }
+  orientation {
+    x: -1.1920928955078125e-07
+    y: 0.9999999403953552
+  }
+  rotation {
+    yaw: 90.00000762939453
+  }
+}
+state: RED
+, 2, ['ByteSize', 'Clear', 'ClearExtension', 'ClearField', 'CopyFrom', 'DESCRIPTOR', 'DiscardUnknownFields', 'Extensions', 'FindInitializationErrors', 'FromString', 'GREEN', 'HasExtension', 'HasField', 'IsInitialized', 'ListFields', 'MergeFrom', 'MergeFromString', 'ParseFromString', 'RED', 'RegisterExtension', 'SerializePartialToString', 'SerializeToString', 'SetInParent', 'State', 'UnknownFields', 'WhichOneof', 'YELLOW', '_CheckCalledFromGeneratedFile', '_SetListener', '__class__', '__deepcopy__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__slots__', '__str__', '__subclasshook__', '__unicode__', '_extensions_by_name', '_extensions_by_number', 'state', 'transform'])]

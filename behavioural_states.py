@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 STOP_THRESHOLD = 0.02
 
@@ -13,11 +15,104 @@ class BehaviouralState(ABC):
     def __init__(self, behavioural_planner, state_manager):
         self._bp = behavioural_planner
         self._state_manager = state_manager
+        self._visited_agents = {}
         assert self.NAME is not None, "Behavioural State does not have a NAME"
 
     @abstractmethod
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         pass
+
+    def _check_for_path_intersection(self, waypoints, closest_index, goal_index, agents):
+        """Checks for an agent that is intervening the goal path.
+
+        Checks for an agent that is intervening the goal path. Returns a new
+        goal index (the current goal index is obstructed by a stop line), and a
+        boolean flag indicating if an agent obstruction was found.
+
+        args:
+            waypoints: current waypoints to track. (global frame)
+                length and speed in m and m/s.
+                (includes speed to track at each x,y location.)
+                format: [[x0, y0, v0],
+                         [x1, y1, v1],
+                         ...
+                         [xn, yn, vn]]
+                example:
+                    waypoints[2][1]: 
+                    returns the 3rd waypoint's y position
+
+                    waypoints[5]:
+                    returns [x5, y5, v5] (6th waypoint)
+                closest_index: index of the waypoint which is closest to the vehicle.
+                    i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
+                goal_index (current): Current goal index for the vehicle to reach
+                    i.e. waypoints[goal_index] gives the goal waypoint
+        variables to set:
+            [goal_index (updated), agent_found]: 
+                goal_index (updated): Updated goal index for the vehicle to reach
+                    i.e. waypoints[goal_index] gives the goal waypoint
+                agent_found: Boolean flag for whether an agent was found or not
+        """
+        #TODO: cambiare i nomi delle variabili e farli generali per agent
+        for i in range(closest_index, goal_index):
+            # Check to see if path segment crosses any of the stop lines.
+            intersect_flag = False
+            for index, agent in enumerate(agents):
+
+                wp_1 = np.array(waypoints[i][0:2])
+                wp_2 = np.array(waypoints[i+1][0:2])
+                s_1 = np.array(agent[0:2])
+                s_2 = np.array(agent[2:4])
+
+                v1 = np.subtract(wp_2, wp_1)
+                v2 = np.subtract(s_1, wp_2)
+                sign_1 = np.sign(np.cross(v1, v2))
+                v2 = np.subtract(s_2, wp_2)
+                sign_2 = np.sign(np.cross(v1, v2))
+
+                v1 = np.subtract(s_2, s_1)
+                v2 = np.subtract(wp_1, s_2)
+                sign_3 = np.sign(np.cross(v1, v2))
+                v2 = np.subtract(wp_2, s_2)
+                sign_4 = np.sign(np.cross(v1, v2))
+
+                # Check if the line segments intersect.
+                if (sign_1 != sign_2) and (sign_3 != sign_4):
+                    intersect_flag = True
+
+                # Check if the collinearity cases hold.
+                if (sign_1 == 0) and self._pointOnSegment(wp_1, s_1, wp_2):
+                    intersect_flag = True
+                if (sign_2 == 0) and self._pointOnSegment(wp_1, s_2, wp_2):
+                    intersect_flag = True
+                if (sign_3 == 0) and self._pointOnSegment(s_1, wp_1, s_2):
+                    intersect_flag = True
+                if (sign_3 == 0) and self._pointOnSegment(s_1, wp_2, s_2):
+                    intersect_flag = True
+
+                # If there is an intersection with a stop line, update
+                # the goal state to stop before the goal line.
+                if intersect_flag:
+                    goal_index = i
+                    return goal_index, index
+
+        return goal_index, -1
+    
+    def _pointOnSegment(p1, p2, p3):
+        if (p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and
+        (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))):
+            return True
+        else:
+            return False
+    
+    def check_for_traffic_lights(self, waypoints, ego_state, closest_index, goal_index, traffic_lights):
+        relevant_traffic_lights = [i for i in traffic_lights if i.yaw * ego_state[2]<0 and abs(i.yaw + ego_state[2]) < 45]
+        agents = [i.position for i in traffic_lights if i.id not in self._visited_agents]
+        goal_index, index = self._check_for_path_intersection(waypoints, closest_index, goal_index, agents)
+        found = index >=0
+        if found:
+            self._visited_agents[traffic_lights[index].id] = True
+        return goal_index, found
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
     # the current ego state. In particular, find the earliest waypoint that has accumulated
@@ -97,8 +192,7 @@ class TrackSpeedState(BehaviouralState):
 
     NAME = "TRACK_SPEED"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
-        logging.debug(f"{self.NAME} STATE (Behavioural Planner)")
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         # First, find the closest index to the ego vehicle.
         closest_len, closest_index = get_closest_index(waypoints, ego_state)
 
@@ -108,8 +202,18 @@ class TrackSpeedState(BehaviouralState):
         while waypoints[goal_index][2] <= 0.1:
             goal_index += 1
 
+        goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closest_index, goal_index, traffic_lights)
+        goal_state = waypoints[goal_index]
+
+        if traffic_light_found:
+            logging.debug("Ho trovato un semaforo")
+            self._state_manager.state_transition(DecelerateToPointState.NAME)
+            goal_state = goal_state.copy()
+            goal_state[2] = 0
+
         self._bp.set_goal_index(goal_index)
-        self._bp.set_goal_state(waypoints[goal_index])
+        self._bp.set_goal_state(goal_state)
+
 
 
 class FollowLeadState(BehaviouralState):
@@ -120,7 +224,7 @@ class FollowLeadState(BehaviouralState):
 
     NAME = "FOLLOW_LEAD"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         pass
 
 
@@ -134,7 +238,7 @@ class DecelerateToPointState(BehaviouralState):
 
     NAME = "DECELERATE_TO_POINT"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         if abs(closed_loop_speed) <= STOP_THRESHOLD:
             self._state_manager.state_transition(StopState.NAME)
 
@@ -148,7 +252,7 @@ class StopState(BehaviouralState):
 
     NAME = "STOP"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         # We have stayed stopped for the required number of cycles.
         # Allow the ego vehicle to leave the stop sign. Once it has
         # passed the stop sign, return to lane following.
@@ -181,7 +285,7 @@ class EmergencyState(BehaviouralState):
 
     NAME = "EMERGENCY"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         pass
 
 
@@ -192,7 +296,7 @@ class ShutdownState(BehaviouralState):
 
     NAME = "SHUTDOWN"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed):
+    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         pass
 
 
@@ -214,11 +318,11 @@ class StateManager:
     def get_state(self):
         return self._state
 
-    def execute(self, waypoints, ego_state, closed_loop_speed):
-        logging.debug(f"{self._state.NAME} STATE (Behavioural Planner)")
-        self._state.handle(waypoints, ego_state, closed_loop_speed)
+    def execute(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
+        self._state.handle(waypoints, ego_state, closed_loop_speed, traffic_lights)
 
     def state_transition(self, new_state_name):
+        logging.debug(f"Current state:{self._state.NAME} next state: {new_state_name} (Behavioural Planner)")
         self._state = self._states[new_state_name]
 
 

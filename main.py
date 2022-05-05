@@ -14,7 +14,8 @@ import csv
 import matplotlib.pyplot as plt
 from numpy.core.defchararray import index
 import controller2d
-import configparser 
+import configparser
+from custom_agents import TrafficLightAdapter 
 import local_planner
 import behavioural_planner
 import cv2
@@ -764,6 +765,15 @@ def exec_waypoint_nav_demo(args):
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
             measurement_data, sensor_data = client.read_data()
+            
+            traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
+            traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
+
+
+            """ with open("./measurement_data.txt", "w") as f:
+                __data = traffic_lights
+                __data = [(d, type(d), d, d.state, dir(d)) for d in __data]
+                print(__data, file=f) """
 
             # UPDATE HERE the obstacles list
             obstacles = []
@@ -819,7 +829,7 @@ def exec_waypoint_nav_demo(args):
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
 
                 # Perform a state transition in the behavioural planner.
-                bp.transition_state(waypoints, ego_state, current_speed)
+                bp.transition_state(waypoints, ego_state, current_speed, traffic_lights)
 
                 # Compute the goal state set from the behavioural planner's computed goal state.
                 goal_state_set = lp.get_goal_state_set(bp._goal_index, bp._goal_state, waypoints, ego_state)

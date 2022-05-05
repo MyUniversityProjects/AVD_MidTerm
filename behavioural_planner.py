@@ -42,7 +42,7 @@ class BehaviouralPlanner:
         return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
 
     # Handles state transitions and computes the goal state.
-    def transition_state(self, waypoints, ego_state, closed_loop_speed):
+    def transition_state(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
         """Handles state transitions and computes the goal state.  
         
         args:
@@ -83,7 +83,7 @@ class BehaviouralPlanner:
             STOP_COUNTS     : Number of cycles (simulation iterations) 
                               before moving from stop sign.
         """
-        self._state_manager.execute(waypoints, ego_state, closed_loop_speed)
+        self._state_manager.execute(waypoints, ego_state, closed_loop_speed, traffic_lights)
 
     # Checks to see if we need to modify our velocity profile to accomodate the
     # lead vehicle.
