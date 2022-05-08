@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
+import logging
 
 import numpy as np
 import math
 
-# Stop speed threshold
 from behavioural_states import StateManager, DecelerateToPointState
 
+# Stop speed threshold
 STOP_THRESHOLD = 0.02
+
 
 class BehaviouralPlanner:
     def __init__(self, lookahead, lead_vehicle_lookahead):
@@ -48,6 +50,9 @@ class BehaviouralPlanner:
 
     def set_goal_index(self, goal_index):
         self._goal_index = goal_index
+
+    def set_following_lead_vehicle(self, val):
+        self._follow_lead_vehicle = val
 
     def is_decelerating(self):
         return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
@@ -123,7 +128,7 @@ class BehaviouralPlanner:
             lead_car_delta_vector = [lead_car_position[0] - ego_state[0], 
                                      lead_car_position[1] - ego_state[1]]
             lead_car_distance = np.linalg.norm(lead_car_delta_vector)
-            # In this case, the car is too far away.   
+            # In this case, the car is too far away.
             if lead_car_distance > self._follow_lead_vehicle_lookahead:
                 return
 
@@ -133,12 +138,11 @@ class BehaviouralPlanner:
                                   math.sin(ego_state[2])]
             # Check to see if the relative angle between the lead vehicle and the ego
             # vehicle lies within +/- 45 degrees of the ego vehicle's heading.
-            if np.dot(lead_car_delta_vector, 
-                      ego_heading_vector) < (1 / math.sqrt(2)):
+            if np.dot(lead_car_delta_vector, ego_heading_vector) < (1 / math.sqrt(2)):
                 return
 
             self._follow_lead_vehicle = True
-
+            logging.info('Following lead vehicle')
         else:
             lead_car_delta_vector = [lead_car_position[0] - ego_state[0], 
                                      lead_car_position[1] - ego_state[1]]
@@ -155,46 +159,4 @@ class BehaviouralPlanner:
                 return
 
             self._follow_lead_vehicle = False
-
-# Compute the waypoint index that is closest to the ego vehicle, and return
-# it as well as the distance from the ego vehicle to that waypoint.
-def get_closest_index(waypoints, ego_state):
-    """Gets closest index a given list of waypoints to the vehicle position.
-
-    args:
-        waypoints: current waypoints to track. (global frame)
-            length and speed in m and m/s.
-            (includes speed to track at each x,y location.)
-            format: [[x0, y0, v0],
-                     [x1, y1, v1],
-                     ...
-                     [xn, yn, vn]]
-            example:
-                waypoints[2][1]: 
-                returns the 3rd waypoint's y position
-
-                waypoints[5]:
-                returns [x5, y5, v5] (6th waypoint)
-        ego_state: ego state vector for the vehicle. (global frame)
-            format: [ego_x, ego_y, ego_yaw, ego_open_loop_speed]
-                ego_x and ego_y     : position (m)
-                ego_yaw             : top-down orientation [-pi to pi]
-                ego_open_loop_speed : open loop speed (m/s)
-
-    returns:
-        [closest_len, closest_index]:
-            closest_len: length (m) to the closest waypoint from the vehicle.
-            closest_index: index of the waypoint which is closest to the vehicle.
-                i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
-    """
-    closest_len = float('Inf')
-    closest_index = 0
-
-    for i in range(len(waypoints)):
-        temp = (waypoints[i][0] - ego_state[0])**2 + (waypoints[i][1] - ego_state[1])**2
-        if temp < closest_len:
-            closest_len = temp
-            closest_index = i
-    closest_len = np.sqrt(closest_len)
-
-    return closest_len, closest_index
+            logging.info('Stop following lead vehicle')

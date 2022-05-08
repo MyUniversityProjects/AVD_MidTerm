@@ -23,6 +23,8 @@ import json
 from math import sin, cos, pi, tan, sqrt
 
 # Script level imports
+from helpers import filter_lead_vehicle_orientation
+
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
 import live_plotter as lv   # Custom live plotting library
 from carla            import sensor
@@ -38,12 +40,12 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 7          #  spawn index for player
+PLAYER_START_INDEX = 8          #  spawn index for player
 DESTINATION_INDEX = 15          # Setting a Destination HERE
-NUM_PEDESTRIANS        = 30     # total number of pedestrians to spawn
-NUM_VEHICLES           = 30     # total number of vehicles to spawn
+NUM_PEDESTRIANS        = 0      # total number of pedestrians to spawn
+NUM_VEHICLES           = 55     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 0      # seed for pedestrian spawn randomizer
-SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
+SEED_VEHICLES          = 4      # seed for vehicle spawn randomizer
 ###############################################################################àà
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
@@ -85,7 +87,7 @@ DIST_THRESHOLD_TO_LAST_WAYPOINT = 2.0  # some distance from last position before
 
 # Planning Constants
 NUM_PATHS = 7
-BP_LOOKAHEAD_BASE      = 16.0              # m
+BP_LOOKAHEAD_BASE      = 16.0             # m
 BP_LOOKAHEAD_TIME      = 1.0              # s
 PATH_OFFSET            = 1.5              # m
 CIRCLE_OFFSETS         = [-1.0, 1.0, 3.0] # m
@@ -95,7 +97,7 @@ PATH_SELECT_WEIGHT     = 10
 A_MAX                  = 2.5              # m/s^2
 SLOW_SPEED             = 2.0              # m/s
 STOP_LINE_BUFFER       = 3.5              # m
-LEAD_VEHICLE_LOOKAHEAD = 20.0             # m
+LEAD_VEHICLE_LOOKAHEAD = 18.0             # m
 LP_FREQUENCY_DIVISOR   = 2                # Frequency divisor to make the 
                                           # local planner operate at a lower
                                           # frequency than the controller
@@ -824,11 +826,21 @@ def exec_waypoint_nav_demo(args):
                 # Current speed should be open loop for the velocity profile generation.
                 ego_state = [current_x, current_y, current_yaw, open_loop_speed]
 
+                lead_cars = filter_lead_vehicle_orientation(measurement_data, ego_state)
+                lead_car_ordered = sorted(lead_cars, key=lambda t: t[-1])
+                closest_car = lead_car_ordered[0] if len(lead_car_ordered) > 0 else None
+
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
 
                 # Perform a state transition in the behavioural planner.
                 bp.transition_state(waypoints, ego_state, current_speed, traffic_lights)
+
+                # Check to see if we need to follow the lead vehicle.
+                if closest_car is not None:
+                    bp.check_for_lead_vehicle(ego_state, closest_car[0])
+                else:
+                    bp.set_following_lead_vehicle(False)
 
                 # Compute the goal state set from the behavioural planner's computed goal state.
                 goal_state_set = lp.get_goal_state_set(bp._goal_index, bp._goal_state, waypoints, ego_state)
@@ -854,8 +866,9 @@ def exec_waypoint_nav_demo(args):
                 if best_path is not None:
                     # Compute the velocity profile for the path, and compute the waypoints.
                     desired_speed = bp._goal_state[2]
+                    lead_car_state = [closest_car[0][0], closest_car[0][1], closest_car[2]] if closest_car is not None else None
                     decelerate_to_stop = bp.is_decelerating()
-                    local_waypoints = lp._velocity_planner.compute_velocity_profile(best_path, desired_speed, ego_state, current_speed, decelerate_to_stop, None, bp._follow_lead_vehicle)
+                    local_waypoints = lp._velocity_planner.compute_velocity_profile(best_path, desired_speed, ego_state, current_speed, decelerate_to_stop, lead_car_state, bp._follow_lead_vehicle)
 
                     if local_waypoints != None:
                         # Update the controller waypoint path with the best local path.
@@ -896,6 +909,7 @@ def exec_waypoint_nav_demo(args):
                         
                         # Update the other controller values and controls
                         controller.update_waypoints(wp_interp)
+                        pass
 
             ###
             # Controller Update
@@ -1013,7 +1027,8 @@ def exec_waypoint_nav_demo(args):
         write_trajectory_file(x_history, y_history, speed_history, time_history,
                               collided_flag_history)
         write_collisioncount_file(collided_flag_history)
-    
+
+
 def main():
     """Main function.
 

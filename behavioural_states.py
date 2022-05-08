@@ -216,18 +216,6 @@ class TrackSpeedState(BehaviouralState):
         self._bp.set_goal_state(goal_state)
 
 
-class FollowLeadState(BehaviouralState):
-    """
-    In this state, we check for lead vehicle within the proximity of the
-    ego car, such that the ego car should begin to follow the lead vehicle.
-    """
-
-    NAME = "FOLLOW_LEAD"
-
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
-        pass
-
-
 class DecelerateToPointState(BehaviouralState):
     """
     In this state, check if we have reached a complete stop. Use the
@@ -317,7 +305,6 @@ class StateManager:
     def __init__(self, behavioral_planner):
         states = [
             TrackSpeedState(behavioral_planner, self),
-            FollowLeadState(behavioral_planner, self),
             StopState(behavioral_planner, self),
             DecelerateToPointState(behavioral_planner, self),
             EmergencyState(behavioral_planner, self),

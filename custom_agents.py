@@ -3,7 +3,7 @@ import numpy as np
 
 class TrafficLightAdapter:
     GREEN = 0
-    C4_STOP_SIGN_FENCELENGTH = 5
+    TRAFFIC_LIGHT_LENGTH = 5
 
     def __init__(self, agent):
         self.agent = agent
@@ -20,7 +20,7 @@ class TrafficLightAdapter:
         yaw = (yaw * np.pi / 180.0) + (sign * np.pi / 2.0)
         spos = np.array([
             [0, 0],
-            [0, self.C4_STOP_SIGN_FENCELENGTH],
+            [0, self.TRAFFIC_LIGHT_LENGTH],
         ])
         rotyaw = np.array([
             [np.cos(yaw), np.sin(yaw)],
