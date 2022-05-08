@@ -19,12 +19,23 @@ class BehaviouralPlanner:
         self._goal_index                    = 0
         self._stop_count                    = 0
         self._lookahead_collision_index     = 0
+        self._traffic_light_id              = None
+        self._visited_agents                = set()  # for eventual stop sign
 
     def get_lookahead(self):
         return self._lookahead
 
     def set_lookahead(self, lookahead):
         self._lookahead = lookahead
+
+    def get_traffic_light_id(self):
+        return self._traffic_light_id
+
+    def set_traffic_light_id(self, tl_id):
+        self._traffic_light_id = tl_id
+
+    def get_visited_agents(self):
+        return self._visited_agents
 
     def get_goal_state(self):
         return self._goal_state
@@ -187,11 +198,3 @@ def get_closest_index(waypoints, ego_state):
     closest_len = np.sqrt(closest_len)
 
     return closest_len, closest_index
-
-# Checks if p2 lies on segment p1-p3, if p1, p2, p3 are collinear.        
-def pointOnSegment(p1, p2, p3):
-    if (p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and \
-       (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))):
-        return True
-    else:
-        return False

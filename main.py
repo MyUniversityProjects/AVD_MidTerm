@@ -769,7 +769,6 @@ def exec_waypoint_nav_demo(args):
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
 
-
             """ with open("./measurement_data.txt", "w") as f:
                 __data = traffic_lights
                 __data = [(d, type(d), d, d.state, dir(d)) for d in __data]

@@ -3,7 +3,9 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-logging.basicConfig(level=logging.DEBUG)
+from custom_agents import TrafficLightAdapter
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
 STOP_THRESHOLD = 0.02
@@ -15,7 +17,6 @@ class BehaviouralState(ABC):
     def __init__(self, behavioural_planner, state_manager):
         self._bp = behavioural_planner
         self._state_manager = state_manager
-        self._visited_agents = {}
         assert self.NAME is not None, "Behavioural State does not have a NAME"
 
     @abstractmethod
@@ -53,7 +54,7 @@ class BehaviouralState(ABC):
                     i.e. waypoints[goal_index] gives the goal waypoint
                 agent_found: Boolean flag for whether an agent was found or not
         """
-        #TODO: cambiare i nomi delle variabili e farli generali per agent
+        # TODO: cambiare i nomi delle variabili e farli generali per agent
         for i in range(closest_index, goal_index):
             # Check to see if path segment crosses any of the stop lines.
             intersect_flag = False
@@ -97,21 +98,21 @@ class BehaviouralState(ABC):
                     return goal_index, index
 
         return goal_index, -1
-    
-    def _pointOnSegment(p1, p2, p3):
+
+    def _pointOnSegment(self, p1, p2, p3):
         if (p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and
         (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))):
             return True
         else:
             return False
-    
+
     def check_for_traffic_lights(self, waypoints, ego_state, closest_index, goal_index, traffic_lights):
-        relevant_traffic_lights = [i for i in traffic_lights if i.yaw * ego_state[2]<0 and abs(i.yaw + ego_state[2]) < 45]
-        agents = [i.position for i in traffic_lights if i.id not in self._visited_agents]
+        tl = [i for i in traffic_lights if i.state != TrafficLightAdapter.GREEN]
+        agents = [i.get_segment() for i in tl]
         goal_index, index = self._check_for_path_intersection(waypoints, closest_index, goal_index, agents)
-        found = index >=0
+        found = index >= 0
         if found:
-            self._visited_agents[traffic_lights[index].id] = True
+            self._bp.set_traffic_light_id(tl[index].id)
         return goal_index, found
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
@@ -206,14 +207,13 @@ class TrackSpeedState(BehaviouralState):
         goal_state = waypoints[goal_index]
 
         if traffic_light_found:
-            logging.debug("Ho trovato un semaforo")
+            logging.info("Ho trovato un semaforo")
             self._state_manager.state_transition(DecelerateToPointState.NAME)
-            goal_state = goal_state.copy()
+            goal_state = goal_state[:]
             goal_state[2] = 0
 
         self._bp.set_goal_index(goal_index)
         self._bp.set_goal_state(goal_state)
-
 
 
 class FollowLeadState(BehaviouralState):
@@ -258,22 +258,33 @@ class StopState(BehaviouralState):
         # passed the stop sign, return to lane following.
         # You should use the get_closest_index(), get_goal_index(), and
         # check_for_stop_signs() helper functions.
-        closest_len, closest_index = get_closest_index(waypoints, ego_state)
-        goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
-        while waypoints[goal_index][2] <= 0.1:
-            goal_index += 1
+
+        # closest_len, closest_index = get_closest_index(waypoints, ego_state)
+        # goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
+        # while waypoints[goal_index][2] <= 0.1:
+        #     goal_index += 1
 
         # We've stopped for the required amount of time, so the new goal
         # index for the stop line is not relevant. Use the goal index
         # that is the lookahead distance away.
-        self._bp.set_goal_index(goal_index)
-        self._bp.set_goal_state(waypoints[goal_index])
+
+        # self._bp.set_goal_index(goal_index)
+        # self._bp.set_goal_state(waypoints[goal_index])
 
         # If the stop sign is no longer along our path, we can now
         # transition back to our lane following state.
 
         # if not stop_sign_found: self._state = FOLLOW_LANE
-        self._state_manager.state_transition(TrackSpeedState.NAME)
+        tl_id = self._bp.get_traffic_light_id()
+        if tl_id is None or self._is_green(tl_id, traffic_lights):
+            self._bp.set_traffic_light_id(None)
+            self._state_manager.state_transition(TrackSpeedState.NAME)
+
+    def _is_green(self, tl_id, traffic_lights):
+        for tl in traffic_lights:
+            if tl.id == tl_id:
+                return tl.state == TrafficLightAdapter.GREEN
+        return False
 
 
 class EmergencyState(BehaviouralState):
@@ -322,7 +333,7 @@ class StateManager:
         self._state.handle(waypoints, ego_state, closed_loop_speed, traffic_lights)
 
     def state_transition(self, new_state_name):
-        logging.debug(f"Current state:{self._state.NAME} next state: {new_state_name} (Behavioural Planner)")
+        logging.info(f"StateChange: {self._state.NAME} => {new_state_name} (Behavioural Planner)")
         self._state = self._states[new_state_name]
 
 
