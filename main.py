@@ -23,7 +23,7 @@ import json
 from math import sin, cos, pi, tan, sqrt
 
 # Script level imports
-from helpers import filter_lead_vehicle_orientation
+from helpers import filter_lead_vehicle_orientation, optimized_dist
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
 import live_plotter as lv   # Custom live plotting library
@@ -40,12 +40,12 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 8          #  spawn index for player
+PLAYER_START_INDEX = 7          #  spawn index for player
 DESTINATION_INDEX = 15          # Setting a Destination HERE
-NUM_PEDESTRIANS        = 0      # total number of pedestrians to spawn
-NUM_VEHICLES           = 55     # total number of vehicles to spawn
-SEED_PEDESTRIANS       = 0      # seed for pedestrian spawn randomizer
-SEED_VEHICLES          = 4      # seed for vehicle spawn randomizer
+NUM_PEDESTRIANS        = 99     # total number of pedestrians to spawn
+NUM_VEHICLES           = 30     # total number of vehicles to spawn
+SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
+SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
 ###############################################################################àà
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
@@ -826,15 +826,23 @@ def exec_waypoint_nav_demo(args):
                 # Current speed should be open loop for the velocity profile generation.
                 ego_state = [current_x, current_y, current_yaw, open_loop_speed]
 
+                # Retrieve all lead vehicle and order them by distance
                 lead_cars = filter_lead_vehicle_orientation(measurement_data, ego_state)
                 lead_car_ordered = sorted(lead_cars, key=lambda t: t[-1])
                 closest_car = lead_car_ordered[0] if len(lead_car_ordered) > 0 else None
+
+                # Retrieve all pedestrians
+                pedestrians = [a.pedestrian for a in measurement_data.non_player_agents if a.HasField('pedestrian')]
+                ped_locs = (p.transform.location for p in pedestrians)
+                distances = (optimized_dist(ego_state, [loc.x, loc.y]) for loc in ped_locs)
+                pedestrians = zip(pedestrians, distances)
+                pedestrians = [ped for ped in pedestrians if ped[1] < 500]  # Ignore very far pedestrians
 
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
 
                 # Perform a state transition in the behavioural planner.
-                bp.transition_state(waypoints, ego_state, current_speed, traffic_lights)
+                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, traffic_lights)
 
                 # Check to see if we need to follow the lead vehicle.
                 if closest_car is not None:
@@ -914,7 +922,11 @@ def exec_waypoint_nav_demo(args):
             ###
             # Controller Update
             ###
-            if local_waypoints != None and local_waypoints != []:
+            if bp.in_emergency():
+                cmd_throttle = 0.0
+                cmd_steer = 0.0
+                cmd_brake = 0.9
+            elif local_waypoints != None and local_waypoints != []:
                 controller.update_values(current_x, current_y, current_yaw, 
                                          current_speed,
                                          current_timestamp, frame)

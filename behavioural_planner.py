@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import math
 
-from behavioural_states import StateManager, DecelerateToPointState
+from behavioural_states import StateManager, DecelerateToPointState, EmergencyState
 
 # Stop speed threshold
 STOP_THRESHOLD = 0.02
@@ -54,11 +54,14 @@ class BehaviouralPlanner:
     def set_following_lead_vehicle(self, val):
         self._follow_lead_vehicle = val
 
+    def in_emergency(self):
+        return self._state_manager.get_state().NAME == EmergencyState.NAME
+
     def is_decelerating(self):
         return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
 
     # Handles state transitions and computes the goal state.
-    def transition_state(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
+    def transition_state(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         """Handles state transitions and computes the goal state.  
         
         args:
@@ -99,7 +102,7 @@ class BehaviouralPlanner:
             STOP_COUNTS     : Number of cycles (simulation iterations) 
                               before moving from stop sign.
         """
-        self._state_manager.execute(waypoints, ego_state, closed_loop_speed, traffic_lights)
+        self._state_manager.execute(waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights)
 
     # Checks to see if we need to modify our velocity profile to accomodate the
     # lead vehicle.

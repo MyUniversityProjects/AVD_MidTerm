@@ -1,14 +1,16 @@
 import logging
 from abc import ABC, abstractmethod
+from datetime import timedelta, datetime
 
 import numpy as np
 
 from custom_agents import TrafficLightAdapter
+from helpers import pedestrian_is_ahead
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
-STOP_THRESHOLD = 0.02
+STOP_THRESHOLD = 0.07
 
 
 class BehaviouralState(ABC):
@@ -20,7 +22,7 @@ class BehaviouralState(ABC):
         assert self.NAME is not None, "Behavioural State does not have a NAME"
 
     @abstractmethod
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         pass
 
     def _check_for_path_intersection(self, waypoints, closest_index, goal_index, agents):
@@ -82,13 +84,13 @@ class BehaviouralState(ABC):
                     intersect_flag = True
 
                 # Check if the collinearity cases hold.
-                if (sign_1 == 0) and self._pointOnSegment(wp_1, s_1, wp_2):
+                if (sign_1 == 0) and self._point_on_segment(wp_1, s_1, wp_2):
                     intersect_flag = True
-                if (sign_2 == 0) and self._pointOnSegment(wp_1, s_2, wp_2):
+                if (sign_2 == 0) and self._point_on_segment(wp_1, s_2, wp_2):
                     intersect_flag = True
-                if (sign_3 == 0) and self._pointOnSegment(s_1, wp_1, s_2):
+                if (sign_3 == 0) and self._point_on_segment(s_1, wp_1, s_2):
                     intersect_flag = True
-                if (sign_3 == 0) and self._pointOnSegment(s_1, wp_2, s_2):
+                if (sign_3 == 0) and self._point_on_segment(s_1, wp_2, s_2):
                     intersect_flag = True
 
                 # If there is an intersection with a stop line, update
@@ -99,12 +101,9 @@ class BehaviouralState(ABC):
 
         return goal_index, -1
 
-    def _pointOnSegment(self, p1, p2, p3):
-        if (p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and
-        (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))):
-            return True
-        else:
-            return False
+    @staticmethod
+    def _point_on_segment(p1, p2, p3):
+        return p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))
 
     def check_for_traffic_lights(self, waypoints, ego_state, closest_index, goal_index, traffic_lights):
         tl = [i for i in traffic_lights if i.state != TrafficLightAdapter.GREEN]
@@ -114,6 +113,10 @@ class BehaviouralState(ABC):
         if found:
             self._bp.set_traffic_light_id(tl[index].id)
         return goal_index, found
+
+    @staticmethod
+    def _check_dangerous_pedestrians(ego_state, pedestrians, lookahead=10):
+        return any(pedestrian_is_ahead(ego_state, ped[0], lookahead) for ped in pedestrians)
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
     # the current ego state. In particular, find the earliest waypoint that has accumulated
@@ -193,8 +196,13 @@ class TrackSpeedState(BehaviouralState):
 
     NAME = "TRACK_SPEED"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
-        # First, find the closest index to the ego vehicle.
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+        if self._check_dangerous_pedestrians(ego_state, pedestrians):
+            logging.info("Dangerous pedestrian found!")
+            self._state_manager.state_transition(EmergencyState.NAME)
+            return
+
+        # Second, find the closest index to the ego vehicle.
         closest_len, closest_index = get_closest_index(waypoints, ego_state)
 
         # Next, find the goal index that lies within the lookahead distance
@@ -207,7 +215,7 @@ class TrackSpeedState(BehaviouralState):
         goal_state = waypoints[goal_index]
 
         if traffic_light_found:
-            logging.info("Ho trovato un semaforo")
+            logging.info("TrafficLight found!")
             self._state_manager.state_transition(DecelerateToPointState.NAME)
             goal_state = goal_state[:]
             goal_state[2] = 0
@@ -226,49 +234,31 @@ class DecelerateToPointState(BehaviouralState):
 
     NAME = "DECELERATE_TO_POINT"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         if abs(closed_loop_speed) <= STOP_THRESHOLD:
             self._state_manager.state_transition(StopState.NAME)
 
 
 class StopState(BehaviouralState):
     """
-    In this state, wait until semaphore turns green and there aren't
+    In this state, wait until traffic light turns green and there aren't
     any pedestrian. If so, we can now leave the intersection and transition
     to the next state.
     """
 
     NAME = "STOP"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
-        # We have stayed stopped for the required number of cycles.
-        # Allow the ego vehicle to leave the stop sign. Once it has
-        # passed the stop sign, return to lane following.
-        # You should use the get_closest_index(), get_goal_index(), and
-        # check_for_stop_signs() helper functions.
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+        # We have stayed stopped until traffic light turns greenand there
+        # aren't any pedestrian.
 
-        # closest_len, closest_index = get_closest_index(waypoints, ego_state)
-        # goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
-        # while waypoints[goal_index][2] <= 0.1:
-        #     goal_index += 1
-
-        # We've stopped for the required amount of time, so the new goal
-        # index for the stop line is not relevant. Use the goal index
-        # that is the lookahead distance away.
-
-        # self._bp.set_goal_index(goal_index)
-        # self._bp.set_goal_state(waypoints[goal_index])
-
-        # If the stop sign is no longer along our path, we can now
-        # transition back to our lane following state.
-
-        # if not stop_sign_found: self._state = FOLLOW_LANE
         tl_id = self._bp.get_traffic_light_id()
         if tl_id is None or self._is_green(tl_id, traffic_lights):
             self._bp.set_traffic_light_id(None)
             self._state_manager.state_transition(TrackSpeedState.NAME)
 
-    def _is_green(self, tl_id, traffic_lights):
+    @staticmethod
+    def _is_green(tl_id, traffic_lights):
         for tl in traffic_lights:
             if tl.id == tl_id:
                 return tl.state == TrafficLightAdapter.GREEN
@@ -283,9 +273,24 @@ class EmergencyState(BehaviouralState):
     """
 
     NAME = "EMERGENCY"
+    TIMEOUT = timedelta(seconds=2)
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
-        pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._start_time = datetime.now()
+        self._last_is_stopped = False
+
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+        curr_is_stopped = abs(closed_loop_speed) <= STOP_THRESHOLD
+        if curr_is_stopped and not self._last_is_stopped:
+            logging.info('Starting emergency timer')
+            self._last_is_stopped = True
+            self._start_time = datetime.now()
+        elif self._last_is_stopped and datetime.now() >= self._start_time + self.TIMEOUT:
+            logging.info('Emergency timer elapsed')
+            self._start_time = datetime.now()
+            self._last_is_stopped = False
+            self._state_manager.state_transition(StopState.NAME)
 
 
 class ShutdownState(BehaviouralState):
@@ -295,7 +300,7 @@ class ShutdownState(BehaviouralState):
 
     NAME = "SHUTDOWN"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         pass
 
 
@@ -316,8 +321,8 @@ class StateManager:
     def get_state(self):
         return self._state
 
-    def execute(self, waypoints, ego_state, closed_loop_speed, traffic_lights):
-        self._state.handle(waypoints, ego_state, closed_loop_speed, traffic_lights)
+    def execute(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+        self._state.handle(waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights)
 
     def state_transition(self, new_state_name):
         logging.info(f"StateChange: {self._state.NAME} => {new_state_name} (Behavioural Planner)")
