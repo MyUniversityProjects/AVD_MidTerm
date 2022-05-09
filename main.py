@@ -765,9 +765,15 @@ def exec_waypoint_nav_demo(args):
         prev_collision_pedestrians = 0
         prev_collision_other       = 0
 
+        wait_seconds = 0
+        counter = wait_seconds * 30
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
             measurement_data, sensor_data = client.read_data()
+            if counter > 0:
+                counter -= 1
+                send_control_command(client, throttle=0, steer=0, brake=0)
+                continue
             
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
@@ -931,7 +937,7 @@ def exec_waypoint_nav_demo(args):
                 if bp.in_emergency():
                     cmd_throttle = 0.0
                     cmd_steer = 0.0
-                    cmd_brake = 0.9
+                    cmd_brake = 0.9  # TODO: based on distance
                     lp = local_planner.LocalPlanner(NUM_PATHS,
                                         PATH_OFFSET,
                                         CIRCLE_OFFSETS,
