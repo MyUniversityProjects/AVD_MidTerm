@@ -293,17 +293,6 @@ class EmergencyState(BehaviouralState):
             self._state_manager.state_transition(StopState.NAME)
 
 
-class ShutdownState(BehaviouralState):
-    """
-    In this state, we don't execute any action due to fatal event.
-    """
-
-    NAME = "SHUTDOWN"
-
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
-        pass
-
-
 class StateManager:
     INIT_STATE_NAME = StopState.NAME
 
@@ -313,7 +302,6 @@ class StateManager:
             StopState(behavioral_planner, self),
             DecelerateToPointState(behavioral_planner, self),
             EmergencyState(behavioral_planner, self),
-            ShutdownState(behavioral_planner, self),
         ]
         self._states = {s.NAME: s for s in states}
         self._state = self._states[self.INIT_STATE_NAME]

@@ -40,10 +40,10 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 7          #  spawn index for player
+PLAYER_START_INDEX = 8          #  spawn index for player
 DESTINATION_INDEX = 15          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 99     # total number of pedestrians to spawn
-NUM_VEHICLES           = 30     # total number of vehicles to spawn
+NUM_VEHICLES           = 99     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
 ###############################################################################àà
@@ -55,6 +55,7 @@ TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
 CLIENT_WAIT_TIME       = 3      # wait time for client before starting episode
                                 # used to make sure the server loads
                                 # consistently
+DEBUG = True
 
 WEATHERID = {
     "DEFAULT": 0,
@@ -841,101 +842,116 @@ def exec_waypoint_nav_demo(args):
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
 
+                if not DEBUG and collided_flag:
+                    logging.info("Collision found. System shutdown.")
+                    quit(-10)
+
                 # Perform a state transition in the behavioural planner.
                 bp.transition_state(waypoints, ego_state, current_speed, pedestrians, traffic_lights)
 
-                # Check to see if we need to follow the lead vehicle.
-                if closest_car is not None:
-                    bp.check_for_lead_vehicle(ego_state, closest_car[0])
-                else:
-                    bp.set_following_lead_vehicle(False)
-
-                # Compute the goal state set from the behavioural planner's computed goal state.
-                goal_state_set = lp.get_goal_state_set(bp._goal_index, bp._goal_state, waypoints, ego_state)
-
-                # Calculate planned paths in the local frame.
-                paths, path_validity = lp.plan_paths(goal_state_set)
-
-                # Transform those paths back to the global frame.
-                paths = local_planner.transform_paths(paths, ego_state)
-
-                # Perform collision checking.
-                collision_check_array = lp._collision_checker.collision_check(paths, [])
-
-                # Compute the best local path.
-                best_index = lp._collision_checker.select_best_path_index(paths, collision_check_array, bp._goal_state)
-                # If no path was feasible, continue to follow the previous best path.
-                if best_index == None:
-                    best_path = lp._prev_best_path
-                else:
-                    best_path = paths[best_index]
-                    lp._prev_best_path = best_path
-
-                if best_path is not None:
-                    # Compute the velocity profile for the path, and compute the waypoints.
-                    desired_speed = bp._goal_state[2]
-                    lead_car_state = [closest_car[0][0], closest_car[0][1], closest_car[2]] if closest_car is not None else None
-                    decelerate_to_stop = bp.is_decelerating()
-                    local_waypoints = lp._velocity_planner.compute_velocity_profile(best_path, desired_speed, ego_state, current_speed, decelerate_to_stop, lead_car_state, bp._follow_lead_vehicle)
-
-                    if local_waypoints != None:
-                        # Update the controller waypoint path with the best local path.
-                        # This controller is similar to that developed in Course 1 of this
-                        # specialization.  Linear interpolation computation on the waypoints
-                        # is also used to ensure a fine resolution between points.
-                        wp_distance = []   # distance array
-                        local_waypoints_np = np.array(local_waypoints)
-                        for i in range(1, local_waypoints_np.shape[0]):
-                            wp_distance.append(
-                                    np.sqrt((local_waypoints_np[i, 0] - local_waypoints_np[i-1, 0])**2 +
-                                            (local_waypoints_np[i, 1] - local_waypoints_np[i-1, 1])**2))
-                        wp_distance.append(0)  # last distance is 0 because it is the distance
-                                            # from the last waypoint to the last waypoint
-
-                        # Linearly interpolate between waypoints and store in a list
-                        wp_interp      = []    # interpolated values 
-                                            # (rows = waypoints, columns = [x, y, v])
-                        for i in range(local_waypoints_np.shape[0] - 1):
-                            # Add original waypoint to interpolated waypoints list (and append
-                            # it to the hash table)
-                            wp_interp.append(list(local_waypoints_np[i]))
-                    
-                            # Interpolate to the next waypoint. First compute the number of
-                            # points to interpolate based on the desired resolution and
-                            # incrementally add interpolated points until the next waypoint
-                            # is about to be reached.
-                            num_pts_to_interp = int(np.floor(wp_distance[i] /\
-                                                        float(INTERP_DISTANCE_RES)) - 1)
-                            wp_vector = local_waypoints_np[i+1] - local_waypoints_np[i]
-                            wp_uvector = wp_vector / np.linalg.norm(wp_vector[0:2])
-
-                            for j in range(num_pts_to_interp):
-                                next_wp_vector = INTERP_DISTANCE_RES * float(j+1) * wp_uvector
-                                wp_interp.append(list(local_waypoints_np[i] + next_wp_vector))
-                        # add last waypoint at the end
-                        wp_interp.append(list(local_waypoints_np[-1]))
-                        
-                        # Update the other controller values and controls
-                        controller.update_waypoints(wp_interp)
+                if not bp.in_emergency():
+                    # Check to see if we need to follow the lead vehicle.
+                    if closest_car is not None:
+                        # bp.check_for_lead_vehicle(ego_state, closest_car[0])
                         pass
+                    else:
+                        bp.set_following_lead_vehicle(False)
 
-            ###
-            # Controller Update
-            ###
-            if bp.in_emergency():
-                cmd_throttle = 0.0
-                cmd_steer = 0.0
-                cmd_brake = 0.9
-            elif local_waypoints != None and local_waypoints != []:
-                controller.update_values(current_x, current_y, current_yaw, 
-                                         current_speed,
-                                         current_timestamp, frame)
-                controller.update_controls()
-                cmd_throttle, cmd_steer, cmd_brake = controller.get_commands()
-            else:
-                cmd_throttle = 0.0
-                cmd_steer = 0.0
-                cmd_brake = 0.0
+                    # Compute the goal state set from the behavioural planner's computed goal state.
+                    goal_state_set = lp.get_goal_state_set(bp._goal_index, bp._goal_state, waypoints, ego_state)
+
+                    # Calculate planned paths in the local frame.
+                    paths, path_validity = lp.plan_paths(goal_state_set)
+
+                    # Transform those paths back to the global frame.
+                    paths = local_planner.transform_paths(paths, ego_state)
+
+                    # Perform collision checking.
+                    collision_check_array = lp._collision_checker.collision_check(paths, [])
+
+                    # Compute the best local path.
+                    best_index = lp._collision_checker.select_best_path_index(paths, collision_check_array, bp._goal_state)
+                    # If no path was feasible, continue to follow the previous best path.
+                    if best_index == None:
+                        best_path = lp._prev_best_path
+                    else:
+                        best_path = paths[best_index]
+                        lp._prev_best_path = best_path
+
+                    if best_path is not None:
+                        # Compute the velocity profile for the path, and compute the waypoints.
+                        desired_speed = bp._goal_state[2]
+                        lead_car_state = [closest_car[0][0], closest_car[0][1], closest_car[2]] if closest_car is not None else None
+                        decelerate_to_stop = bp.is_decelerating()
+                        local_waypoints = lp._velocity_planner.compute_velocity_profile(best_path, desired_speed, ego_state, current_speed, decelerate_to_stop, lead_car_state, bp._follow_lead_vehicle)
+
+                        if local_waypoints != None:
+                            # Update the controller waypoint path with the best local path.
+                            # This controller is similar to that developed in Course 1 of this
+                            # specialization.  Linear interpolation computation on the waypoints
+                            # is also used to ensure a fine resolution between points.
+                            wp_distance = []   # distance array
+                            local_waypoints_np = np.array(local_waypoints)
+                            for i in range(1, local_waypoints_np.shape[0]):
+                                wp_distance.append(
+                                        np.sqrt((local_waypoints_np[i, 0] - local_waypoints_np[i-1, 0])**2 +
+                                                (local_waypoints_np[i, 1] - local_waypoints_np[i-1, 1])**2))
+                            wp_distance.append(0)  # last distance is 0 because it is the distance
+                                                # from the last waypoint to the last waypoint
+
+                            # Linearly interpolate between waypoints and store in a list
+                            wp_interp      = []    # interpolated values 
+                                                # (rows = waypoints, columns = [x, y, v])
+                            for i in range(local_waypoints_np.shape[0] - 1):
+                                # Add original waypoint to interpolated waypoints list (and append
+                                # it to the hash table)
+                                wp_interp.append(list(local_waypoints_np[i]))
+                        
+                                # Interpolate to the next waypoint. First compute the number of
+                                # points to interpolate based on the desired resolution and
+                                # incrementally add interpolated points until the next waypoint
+                                # is about to be reached.
+                                num_pts_to_interp = int(np.floor(wp_distance[i] /\
+                                                            float(INTERP_DISTANCE_RES)) - 1)
+                                wp_vector = local_waypoints_np[i+1] - local_waypoints_np[i]
+                                wp_uvector = wp_vector / np.linalg.norm(wp_vector[0:2])
+
+                                for j in range(num_pts_to_interp):
+                                    next_wp_vector = INTERP_DISTANCE_RES * float(j+1) * wp_uvector
+                                    wp_interp.append(list(local_waypoints_np[i] + next_wp_vector))
+                            # add last waypoint at the end
+                            wp_interp.append(list(local_waypoints_np[-1]))
+                            
+                            # Update the other controller values and controls
+                            controller.update_waypoints(wp_interp)
+                            pass
+
+                ###
+                # Controller Update
+                ###
+                if bp.in_emergency():
+                    cmd_throttle = 0.0
+                    cmd_steer = 0.0
+                    cmd_brake = 0.9
+                    lp = local_planner.LocalPlanner(NUM_PATHS,
+                                        PATH_OFFSET,
+                                        CIRCLE_OFFSETS,
+                                        CIRCLE_RADII,
+                                        PATH_SELECT_WEIGHT,
+                                        TIME_GAP,
+                                        A_MAX,
+                                        SLOW_SPEED,
+                                        STOP_LINE_BUFFER)
+                elif local_waypoints != None and local_waypoints != []:
+                    controller.update_values(current_x, current_y, current_yaw, 
+                                            current_speed,
+                                            current_timestamp, frame)
+                    controller.update_controls()
+                    cmd_throttle, cmd_steer, cmd_brake = controller.get_commands()
+                else:
+                    cmd_throttle = 0.0
+                    cmd_steer = 0.0
+                    cmd_brake = 0.0
 
             # Skip the first frame or if there exists no local paths
             if skip_first_frame and frame == 0:
