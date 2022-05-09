@@ -5,12 +5,12 @@ from datetime import timedelta, datetime
 import numpy as np
 
 from custom_agents import TrafficLightAdapter
-from helpers import pedestrian_is_ahead
+from helpers import pedestrian_is_ahead, ego_trajectory_intersect, check_for_path_intersection
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
-STOP_THRESHOLD = 0.07
+STOP_THRESHOLD = 0.02
 
 
 class BehaviouralState(ABC):
@@ -25,90 +25,10 @@ class BehaviouralState(ABC):
     def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         pass
 
-    def _check_for_path_intersection(self, waypoints, closest_index, goal_index, agents):
-        """Checks for an agent that is intervening the goal path.
-
-        Checks for an agent that is intervening the goal path. Returns a new
-        goal index (the current goal index is obstructed by a stop line), and a
-        boolean flag indicating if an agent obstruction was found.
-
-        args:
-            waypoints: current waypoints to track. (global frame)
-                length and speed in m and m/s.
-                (includes speed to track at each x,y location.)
-                format: [[x0, y0, v0],
-                         [x1, y1, v1],
-                         ...
-                         [xn, yn, vn]]
-                example:
-                    waypoints[2][1]: 
-                    returns the 3rd waypoint's y position
-
-                    waypoints[5]:
-                    returns [x5, y5, v5] (6th waypoint)
-                closest_index: index of the waypoint which is closest to the vehicle.
-                    i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
-                goal_index (current): Current goal index for the vehicle to reach
-                    i.e. waypoints[goal_index] gives the goal waypoint
-        variables to set:
-            [goal_index (updated), agent_found]: 
-                goal_index (updated): Updated goal index for the vehicle to reach
-                    i.e. waypoints[goal_index] gives the goal waypoint
-                agent_found: Boolean flag for whether an agent was found or not
-        """
-        # TODO: cambiare i nomi delle variabili e farli generali per agent
-        for i in range(closest_index, goal_index):
-            # Check to see if path segment crosses any of the stop lines.
-            intersect_flag = False
-            for index, agent in enumerate(agents):
-
-                wp_1 = np.array(waypoints[i][0:2])
-                wp_2 = np.array(waypoints[i+1][0:2])
-                s_1 = np.array(agent[0:2])
-                s_2 = np.array(agent[2:4])
-
-                v1 = np.subtract(wp_2, wp_1)
-                v2 = np.subtract(s_1, wp_2)
-                sign_1 = np.sign(np.cross(v1, v2))
-                v2 = np.subtract(s_2, wp_2)
-                sign_2 = np.sign(np.cross(v1, v2))
-
-                v1 = np.subtract(s_2, s_1)
-                v2 = np.subtract(wp_1, s_2)
-                sign_3 = np.sign(np.cross(v1, v2))
-                v2 = np.subtract(wp_2, s_2)
-                sign_4 = np.sign(np.cross(v1, v2))
-
-                # Check if the line segments intersect.
-                if (sign_1 != sign_2) and (sign_3 != sign_4):
-                    intersect_flag = True
-
-                # Check if the collinearity cases hold.
-                if (sign_1 == 0) and self._point_on_segment(wp_1, s_1, wp_2):
-                    intersect_flag = True
-                if (sign_2 == 0) and self._point_on_segment(wp_1, s_2, wp_2):
-                    intersect_flag = True
-                if (sign_3 == 0) and self._point_on_segment(s_1, wp_1, s_2):
-                    intersect_flag = True
-                if (sign_3 == 0) and self._point_on_segment(s_1, wp_2, s_2):
-                    intersect_flag = True
-
-                # If there is an intersection with a stop line, update
-                # the goal state to stop before the goal line.
-                if intersect_flag:
-                    goal_index = i
-                    return goal_index, index
-
-        return goal_index, -1
-
-    @staticmethod
-    def _point_on_segment(p1, p2, p3):
-        return p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))
-
     def check_for_traffic_lights(self, waypoints, ego_state, closest_index, goal_index, traffic_lights):
         tl = [i for i in traffic_lights if i.state != TrafficLightAdapter.GREEN]
         agents = [i.get_segment() for i in tl]
-        goal_index, index = self._check_for_path_intersection(waypoints, closest_index, goal_index, agents)
+        goal_index, index = check_for_path_intersection(waypoints, closest_index, goal_index, agents)
         found = index >= 0
         if found:
             self._bp.set_traffic_light_id(tl[index].id)
@@ -116,7 +36,13 @@ class BehaviouralState(ABC):
 
     @staticmethod
     def _check_dangerous_pedestrians(ego_state, pedestrians, lookahead=10):
-        return any(pedestrian_is_ahead(ego_state, ped[0], lookahead) for ped in pedestrians)
+        if any(pedestrian_is_ahead(ego_state, ped[0], lookahead) for ped in pedestrians):
+            logging.info("Dangerous pedestrian found with rectangle collision box!")
+            return True
+        if any(ego_trajectory_intersect(ego_state, ped[0], ego_lookahead=35, ped_lookahed=5) for ped in pedestrians):
+            logging.info("Dangerous pedestrian found with trajectory intersection!")
+            return True
+        return False
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
     # the current ego state. In particular, find the earliest waypoint that has accumulated
@@ -198,7 +124,6 @@ class TrackSpeedState(BehaviouralState):
 
     def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
         if self._check_dangerous_pedestrians(ego_state, pedestrians):
-            logging.info("Dangerous pedestrian found!")
             self._state_manager.state_transition(EmergencyState.NAME)
             return
 

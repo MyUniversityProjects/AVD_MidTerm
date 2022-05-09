@@ -26,6 +26,40 @@ def get_test_rect_area(rect, point):
     return triangle_area(a, b, point) + triangle_area(a, d, point) + triangle_area(b, c, point) + triangle_area(d, c, point)
 
 
+def point_on_segment(p1, p2, p3):
+    return p2[0] <= max(p1[0], p3[0]) and (p2[0] >= min(p1[0], p3[0])) and (p2[1] <= max(p1[1], p3[1])) and (p2[1] >= min(p1[1], p3[1]))
+
+
+def segment_intersect(p11, p12, p21, p22):
+    v1 = np.subtract(p12, p11)
+    v2 = np.subtract(p21, p12)
+    sign_1 = np.sign(np.cross(v1, v2))
+    v2 = np.subtract(p22, p12)
+    sign_2 = np.sign(np.cross(v1, v2))
+
+    v1 = np.subtract(p22, p21)
+    v2 = np.subtract(p11, p22)
+    sign_3 = np.sign(np.cross(v1, v2))
+    v2 = np.subtract(p12, p22)
+    sign_4 = np.sign(np.cross(v1, v2))
+
+    # Check if the line segments intersect.
+    if (sign_1 != sign_2) and (sign_3 != sign_4):
+        return True
+
+    # Check if the collinearity cases hold.
+    if sign_1 == 0 and point_on_segment(p11, p21, p12):
+        return True
+    if sign_2 == 0 and point_on_segment(p11, p22, p12):
+        return True
+    if sign_3 == 0 and point_on_segment(p21, p11, p22):
+        return True
+    if sign_3 == 0 and point_on_segment(p21, p12, p22):
+        return True
+
+    return False
+
+
 def filter_lead_vehicle_orientation(measurement_data, ego_state):
     """Obtain Lead Vehicle information."""
 
@@ -51,6 +85,53 @@ def filter_lead_vehicle_orientation(measurement_data, ego_state):
                 lead_car_speed.append(agent.vehicle.forward_speed)
                 lead_car_dist.append(curr_dist)
     return list(zip(lead_car_pos, lead_car_length, lead_car_speed, lead_car_dist))
+
+
+def check_for_path_intersection(waypoints, closest_index, goal_index, agents):
+    """
+    Checks for an agent that is intervening the goal path.
+
+    Checks for an agent that is intervening the goal path. Returns a new
+    goal index and the index of the agent obstruction found.
+
+    args:
+        waypoints: current waypoints to track. (global frame)
+            length and speed in m and m/s.
+            (includes speed to track at each x,y location.)
+            format: [[x0, y0, v0],
+                     [x1, y1, v1],
+                     ...
+                     [xn, yn, vn]]
+            example:
+                waypoints[2][1]:
+                returns the 3rd waypoint's y position
+
+                waypoints[5]:
+                returns [x5, y5, v5] (6th waypoint)
+            closest_index: index of the waypoint which is closest to the vehicle.
+                i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
+            goal_index (current): Current goal index for the vehicle to reach
+                i.e. waypoints[goal_index] gives the goal waypoint
+    variables to set:
+        [goal_index (updated), agent_found]:
+            goal_index (updated): Updated goal index for the vehicle to reach
+                i.e. waypoints[goal_index] gives the goal waypoint
+            agent_index: index of the agent found; -1 otherwise
+    """
+    for i in range(closest_index, goal_index):
+        # Check to see if path segment crosses any of the stop lines.
+        for index, agent in enumerate(agents):
+            wp_1 = np.array(waypoints[i][0:2])
+            wp_2 = np.array(waypoints[i + 1][0:2])
+            sl_1 = np.array(agent[0:2])
+            sl_2 = np.array(agent[2:4])
+
+            # If there is an intersection, update
+            # the goal state to stop before the goal line.
+            if segment_intersect(wp_1, wp_2, sl_1, sl_2):
+                goal_index = i
+                return goal_index, index
+    return goal_index, -1
 
 
 def pedestrian_is_ahead(ego_state, ped, lookahead):
@@ -80,3 +161,29 @@ def pedestrian_is_ahead(ego_state, ped, lookahead):
     rect = [a, b, c, d]
 
     return get_test_rect_area(rect, future_ego_state) <= rect_area
+
+
+def ego_trajectory_intersect(ego_state, ped, ego_lookahead=10, ped_lookahed=10, ped_speed_filter=0.02):
+    """
+    Checks if a pedestrian trajectory intersects with the ego vehicle trajectory.
+    It creates segment trajectory using objects position and translating it
+    along the object orientation by an amount specified by the lookahead parameter
+    """
+    if ped.forward_speed <= ped_speed_filter:
+        return False
+
+    ped_t = ped.transform
+    ped_pos = [ped_t.location.x, ped_t.location.y]
+
+    ego_yaw = ego_state[2]
+    ped_yaw = ped_t.rotation.yaw
+
+    future_ego = move_along_orientation(ego_state, ego_yaw, distance=ego_lookahead)
+    future_ped = move_along_orientation(ped_pos, ped_yaw, distance=ped_lookahed)
+
+    return segment_intersect(
+        p11=np.array(ego_state[:2]),
+        p12=np.array(future_ego[:2]),
+        p21=np.array(ped_pos),
+        p22=np.array(future_ped),
+    )

@@ -40,10 +40,10 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 8          #  spawn index for player
+PLAYER_START_INDEX = 7          #  spawn index for player
 DESTINATION_INDEX = 15          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 99     # total number of pedestrians to spawn
-NUM_VEHICLES           = 99     # total number of vehicles to spawn
+NUM_VEHICLES           = 30     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
 ###############################################################################àà
@@ -852,8 +852,7 @@ def exec_waypoint_nav_demo(args):
                 if not bp.in_emergency():
                     # Check to see if we need to follow the lead vehicle.
                     if closest_car is not None:
-                        # bp.check_for_lead_vehicle(ego_state, closest_car[0])
-                        pass
+                        bp.check_for_lead_vehicle(ego_state, closest_car[0])
                     else:
                         bp.set_following_lead_vehicle(False)
 
