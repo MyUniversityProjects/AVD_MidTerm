@@ -23,6 +23,7 @@ class BehaviouralPlanner:
         self._lookahead_collision_index     = 0
         self._traffic_light_id              = None
         self._visited_agents                = set()  # for eventual stop sign
+        self._emergency_brake_value         = 0.0
 
     def get_lookahead(self):
         return self._lookahead
@@ -53,6 +54,12 @@ class BehaviouralPlanner:
 
     def set_following_lead_vehicle(self, val):
         self._follow_lead_vehicle = val
+
+    def get_emergency_brake_value(self):
+        return self._emergency_brake_value
+
+    def set_emergency_brake_value(self, brake_value):
+        self._emergency_brake_value = brake_value
 
     def in_emergency(self):
         return self._state_manager.get_state().NAME == EmergencyState.NAME
@@ -102,6 +109,7 @@ class BehaviouralPlanner:
             STOP_COUNTS     : Number of cycles (simulation iterations) 
                               before moving from stop sign.
         """
+        self._emergency_brake_value = 0.0
         self._state_manager.execute(waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights)
 
     # Checks to see if we need to modify our velocity profile to accomodate the

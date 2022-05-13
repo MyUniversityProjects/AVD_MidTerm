@@ -2,6 +2,8 @@ import math
 
 import numpy as np
 
+import constants
+
 
 def unit_vector(vector):
     """Returns the unit vector of the vector."""
@@ -13,6 +15,12 @@ def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+def angle_vector(v):
+    if v[0] == 0.0:
+        return math.pi / 2.0
+    return math.atan(v[1] / v[0])
 
 
 def optimized_dist(a, b):
@@ -27,15 +35,6 @@ def get_orientation_offset(yaw, distance):
 def move_along_orientation(pos, yaw, distance):
     offset = get_orientation_offset(yaw, distance)
     return [pos[0] + offset[0], pos[1] + offset[1]]
-
-
-def triangle_area(a, b, c):
-    return abs((b[0] * a[1] - a[0] * b[1]) + (c[0] * b[1] - b[0] * c[1]) + (a[0] * c[1] - c[0] * a[1])) / 2
-
-
-def get_test_rect_area(rect, point):
-    a, b, c, d = rect
-    return triangle_area(a, b, point) + triangle_area(a, d, point) + triangle_area(b, c, point) + triangle_area(d, c, point)
 
 
 def point_on_segment(p1, p2, p3):
@@ -74,7 +73,6 @@ def segment_intersect(p11, p12, p21, p22):
 
 def filter_lead_vehicle_orientation(measurement_data, ego_state):
     """Obtain Lead Vehicle information."""
-
     lead_car_pos = []
     lead_car_length = []
     lead_car_speed = []
@@ -91,7 +89,7 @@ def filter_lead_vehicle_orientation(measurement_data, ego_state):
             future_dist = optimized_dist(future_pos, ego_state)
             is_ahead = curr_dist < future_dist
 
-            if is_ahead and abs(ego_state[2] - yaw) < math.pi / 4:  # TODO: considerare
+            if is_ahead and abs(ego_state[2] - yaw) < math.pi / 4:
                 lead_car_pos.append(pos)
                 lead_car_length.append(agent.vehicle.bounding_box.extent.x)
                 lead_car_speed.append(agent.vehicle.forward_speed)
@@ -146,48 +144,7 @@ def check_for_path_intersection(waypoints, closest_index, goal_index, agents):
     return goal_index, -1
 
 
-def pedestrian_is_ahead(ego_state, ped, lookahead):
-    """
-    Checks if a pedestrian is ahead of the vehicle.
-    It creates a rectangle as bounding box that has:
-        - Long axis with the same orientation of the vehicle
-        - Center equal to the pedestrian position
-    """
-    lookahead /= 2
-    rect_width = 1.5
-    rect_area = lookahead * 2 * rect_width * 2
-
-    loc = ped.transform.location
-    ped_pos = np.array([loc.x, loc.y])
-
-    yaw = ego_state[2]
-    future_ego_state = move_along_orientation(ego_state, yaw, distance=lookahead)
-
-    v1 = np.array(get_orientation_offset(yaw, distance=lookahead))
-    v2 = np.array(get_orientation_offset(yaw - math.pi / 2, distance=rect_width))
-
-    a = ped_pos + v1 + v2
-    b = ped_pos + v1 - v2
-    c = ped_pos - v1 - v2
-    d = ped_pos - v1 + v2
-    rect = [a, b, c, d]
-
-    return get_test_rect_area(rect, future_ego_state) <= rect_area
-
-
-def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_lookahead=10, ped_lookahead=10, ped_speed_filter=0.02):
-    """ TODO: change
-    Checks if a pedestrian trajectory intersects with the ego vehicle trajectory.
-    It creates segment trajectory using objects position and translating it
-    along the object orientation by an amount specified by the lookahead parameter
-    """
-    if ped.forward_speed <= ped_speed_filter:
-        return False
-    ped_t = ped.transform
-    ped_pos = np.array([ped_t.location.x, ped_t.location.y])
-    ped_yaw = ped_t.rotation.yaw
-    future_ped = np.array(move_along_orientation(ped_pos, ped_yaw, distance=ped_lookahead))
-
+def _get_ego_trajectory_points(ego_state, waypoints, closest_index):
     first_waypoint = waypoints[closest_index]
     p1, p2 = np.array(ego_state[:2]), np.array(first_waypoint[:2])
     ori = np.array([math.cos(ego_state[2]), math.sin(ego_state[2])])
@@ -195,10 +152,21 @@ def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_looka
     angle = angle_between(ori, direction_vec)
     is_behind = angle > math.pi / 2.0  # if first waypoint is behind the vehicle
     first_index = closest_index if not is_behind else closest_index + 1
+    return [ego_state[:2], *waypoints[first_index:]]
 
-    points = [ego_state[:2], *waypoints[first_index:]]
+
+def ego_pedestrian_intersect(ego_state, ped, waypoints, closest_index, ego_lookahead=10):
+    """
+    Checks if a pedestrian intersects with the ego vehicle trajectory.
+    It creates a segment centered on the pedestrian and checks if this
+    segment intersects the waypoints segments until a max distance
+    (ego_lookahead).
+    """
+    ped_t = ped.transform
+    ped_pos = np.array([ped_t.location.x, ped_t.location.y])
+
+    points = _get_ego_trajectory_points(ego_state, waypoints, closest_index)
     len_counter = 0
-
     for i in range(len(points) - 1):
         if len_counter >= ego_lookahead:
             break
@@ -211,15 +179,52 @@ def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_looka
             centered_wp_2 = wp_2 - wp_1
             wp_2 = (centered_wp_2 / np.linalg.norm(centered_wp_2) * len_remaining) + wp_1
 
-        if segment_intersect(wp_1, wp_2, ped_pos, future_ped):
+        ortho_angle = angle_vector(wp_1 - wp_2) + math.pi / 2.0
+        offset_vec = np.array([math.cos(ortho_angle), math.sin(ortho_angle)]) * constants.PED_SEGMENT / 2
+
+        if segment_intersect(wp_1, wp_2, ped_pos - offset_vec, ped_pos + offset_vec):
             return True
 
         len_counter += wp_len
     return False
 
 
-def is_ahead(p1, p2, yaw):
-    p1, p2 = np.array(p1), np.array(p2)
-    ori = np.array([math.cos(yaw), math.sin(yaw)])
-    direction_vec = p2 - p1
-    return angle_between(ori, direction_vec) < math.pi / 2.0
+def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_lookahead=10, ped_lookahead=10, ped_speed_filter=0.02):
+    """
+    Checks if a pedestrian trajectory intersects with the ego vehicle trajectory.
+    It creates a segment from the pedestrian to his future position and checks if this
+    segment intersects the waypoints segments until a max distance (ego_lookahead).
+    """
+    if ped.forward_speed <= ped_speed_filter:
+        return False
+    ped_t = ped.transform
+    ped_pos = np.array([ped_t.location.x, ped_t.location.y])
+    ped_yaw = math.radians(ped_t.rotation.yaw)
+    future_ped = np.array(move_along_orientation(ped_pos, ped_yaw, distance=ped_lookahead))
+
+    points = _get_ego_trajectory_points(ego_state, waypoints, closest_index)
+    len_counter = 0
+    for i in range(len(points) - 1):
+        if len_counter >= ego_lookahead:
+            break
+        wp_1 = np.array(points[i][0:2])
+        wp_2 = np.array(points[i + 1][0:2])
+
+        wp_len = math.sqrt(optimized_dist(wp_1, wp_2))
+        if wp_len + len_counter >= ego_lookahead:
+            len_remaining = ego_lookahead - len_counter
+            centered_wp_2 = wp_2 - wp_1
+            wp_2 = (centered_wp_2 / np.linalg.norm(centered_wp_2) * len_remaining) + wp_1
+
+        ortho_angle = angle_vector(wp_1 - wp_2) + math.pi / 2.0
+        offset_vec = np.array([math.cos(ortho_angle), math.sin(ortho_angle)]) * constants.CAR_WIDTH / 2
+
+        for k in [-1, 1]:
+            wpk_1 = wp_1 + k * offset_vec
+            wpk_2 = wp_2 + k * offset_vec
+
+            if segment_intersect(wpk_1, wpk_2, ped_pos, future_ped):
+                return True
+
+        len_counter += wp_len
+    return False

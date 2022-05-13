@@ -46,10 +46,11 @@ NUM_PEDESTRIANS        = 99     # total number of pedestrians to spawn
 NUM_VEHICLES           = 30     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
-###############################################################################àà
+###############################################################################
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
 WAIT_TIME_BEFORE_START = 1.00   # game seconds (time before controller start)
+START_DELAY            = 34     # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
 CLIENT_WAIT_TIME       = 3      # wait time for client before starting episode
@@ -98,7 +99,7 @@ PATH_SELECT_WEIGHT     = 10
 A_MAX                  = 2.5              # m/s^2
 SLOW_SPEED             = 2.0              # m/s
 STOP_LINE_BUFFER       = 3.5              # m
-LEAD_VEHICLE_LOOKAHEAD = 18.0             # m
+LEAD_VEHICLE_LOOKAHEAD = 13.0             # m
 LP_FREQUENCY_DIVISOR   = 2                # Frequency divisor to make the 
                                           # local planner operate at a lower
                                           # frequency than the controller
@@ -765,23 +766,18 @@ def exec_waypoint_nav_demo(args):
         prev_collision_pedestrians = 0
         prev_collision_other       = 0
 
-        wait_seconds = 0
-        counter = wait_seconds * 30
+        wait_seconds = START_DELAY
+        delay_counter = wait_seconds * 30
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
             measurement_data, sensor_data = client.read_data()
-            if counter > 0:
-                counter -= 1
+            if delay_counter > 0:
+                delay_counter -= 1
                 send_control_command(client, throttle=0, steer=0, brake=0)
                 continue
             
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
-
-            """ with open("./measurement_data.txt", "w") as f:
-                __data = traffic_lights
-                __data = [(d, type(d), d, d.state, dir(d)) for d in __data]
-                print(__data, file=f) """
 
             # UPDATE HERE the obstacles list
             obstacles = []
@@ -844,6 +840,7 @@ def exec_waypoint_nav_demo(args):
                 distances = (optimized_dist(ego_state, [loc.x, loc.y]) for loc in ped_locs)
                 pedestrians = zip(pedestrians, distances)
                 pedestrians = [ped for ped in pedestrians if ped[1] < 500]  # Ignore very far pedestrians
+                pedestrians = sorted(pedestrians, key=lambda ped: ped[1])
 
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
@@ -937,7 +934,7 @@ def exec_waypoint_nav_demo(args):
                 if bp.in_emergency():
                     cmd_throttle = 0.0
                     cmd_steer = 0.0
-                    cmd_brake = 0.9  # TODO: based on distance
+                    cmd_brake = bp.get_emergency_brake_value()
                     lp = local_planner.LocalPlanner(NUM_PATHS,
                                         PATH_OFFSET,
                                         CIRCLE_OFFSETS,
