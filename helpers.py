@@ -89,7 +89,7 @@ def filter_lead_vehicle_orientation(measurement_data, ego_state):
             future_dist = optimized_dist(future_pos, ego_state)
             is_ahead = curr_dist < future_dist
 
-            if is_ahead and abs(ego_state[2] - yaw) < math.pi / 4:
+            if is_ahead and min(abs(ego_state[2] - yaw), abs(ego_state[2] + yaw)) < math.pi / 4:
                 lead_car_pos.append(pos)
                 lead_car_length.append(agent.vehicle.bounding_box.extent.x)
                 lead_car_speed.append(agent.vehicle.forward_speed)

@@ -40,20 +40,20 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 7          #  spawn index for player
-DESTINATION_INDEX = 15          # Setting a Destination HERE
-NUM_PEDESTRIANS        = 199     # total number of pedestrians to spawn
-NUM_VEHICLES           = 1     # total number of vehicles to spawn
-SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
-SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
+PLAYER_START_INDEX = 6          #  spawn index for player
+DESTINATION_INDEX = 24          # Setting a Destination HERE
+NUM_PEDESTRIANS        = 1     # total number of pedestrians to spawn
+NUM_VEHICLES           = 99     # total number of vehicles to spawn
+SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
+SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
 WAIT_TIME_BEFORE_START = 1.00   # game seconds (time before controller start)
-START_DELAY            = 2      # s
+START_DELAY            = 0      # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
 CLIENT_WAIT_TIME       = 3      # wait time for client before starting episode
-DESIRED_SPEED = 5.0
+DESIRED_SPEED = 8.0
 DEBUG = True
 
 WEATHERID = {
