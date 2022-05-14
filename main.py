@@ -42,18 +42,18 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 PLAYER_START_INDEX = 7          #  spawn index for player
 DESTINATION_INDEX = 15          # Setting a Destination HERE
-NUM_PEDESTRIANS        = 1      # total number of pedestrians to spawn
-NUM_VEHICLES           = 1      # total number of vehicles to spawn
+NUM_PEDESTRIANS        = 199     # total number of pedestrians to spawn
+NUM_VEHICLES           = 1     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 3      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 0      # seed for vehicle spawn randomizer
-###############################################################################
 
-ITER_FOR_SIM_TIMESTEP  = 10       # no. iterations to compute approx sim timestep
-WAIT_TIME_BEFORE_START = 1.00     # game seconds (time before controller start)
-START_DELAY            = 34       # s
-TOTAL_RUN_TIME         = 5000.00  # game seconds (total runtime before sim end)
-TOTAL_FRAME_BUFFER     = 300      # number of frames to buffer after total runtime
-CLIENT_WAIT_TIME       = 3        # wait time for client before starting episode
+ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
+WAIT_TIME_BEFORE_START = 1.00   # game seconds (time before controller start)
+START_DELAY            = 2      # s
+TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
+TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
+CLIENT_WAIT_TIME       = 3      # wait time for client before starting episode
+DESIRED_SPEED = 5.0
 DEBUG = True
 
 WEATHERID = {
@@ -515,7 +515,7 @@ def exec_waypoint_nav_demo(args):
 
         waypoints = []
         waypoints_route = mission_planner.compute_route(source, source_ori, destination, destination_ori)
-        desired_speed = 5.0
+        desired_speed = DESIRED_SPEED
         turn_speed    = 2.5
 
         intersection_nodes = mission_planner.get_intersection_nodes()
@@ -850,7 +850,7 @@ def exec_waypoint_nav_demo(args):
                 # Perform a state transition in the behavioural planner.
                 bp.transition_state(waypoints, ego_state, current_speed, pedestrians, traffic_lights)
 
-                if not bp.in_emergency():
+                if not bp.in_emergency() or not bp.in_stop():
                     # Check to see if we need to follow the lead vehicle.
                     if closest_car is not None:
                         bp.check_for_lead_vehicle(ego_state, closest_car[0])
@@ -929,7 +929,7 @@ def exec_waypoint_nav_demo(args):
                 ###
                 # Controller Update
                 ###
-                if bp.in_emergency():
+                if bp.in_emergency() or bp.in_stop():
                     cmd_throttle = 0.0
                     cmd_steer = 0.0
                     cmd_brake = bp.get_emergency_brake_value()

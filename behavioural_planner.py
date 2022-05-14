@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import math
 
-from behavioural_states import StateManager, DecelerateToPointState, EmergencyState
+from behavioural_states import StateManager, DecelerateToPointState, EmergencyState, StopState
 
 # Stop speed threshold
 STOP_THRESHOLD = 0.02
@@ -63,6 +63,9 @@ class BehaviouralPlanner:
 
     def in_emergency(self):
         return self._state_manager.get_state().NAME == EmergencyState.NAME
+
+    def in_stop(self):
+        return self._state_manager.get_state().NAME == StopState.NAME
 
     def is_decelerating(self):
         return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
