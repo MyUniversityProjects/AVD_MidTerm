@@ -210,7 +210,7 @@ class StopState(BehaviouralState):
         tl_id = self._bp.get_traffic_light_id()
         if tl_id is None or self._is_green(tl_id, traffic_lights):
             _, closest_index = get_closest_index(waypoints, ego_state)
-            if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians):
+            if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians) is None:
                 self._bp.set_traffic_light_id(None)
                 self._state_manager.state_transition(TrackSpeedState.NAME)
 
