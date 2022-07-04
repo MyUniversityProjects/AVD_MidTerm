@@ -5,6 +5,7 @@ import numpy as np
 import math
 
 from behavioural_states import StateManager, DecelerateToPointState, EmergencyState, StopState
+from custom_agents import OrientationMemory
 
 # Stop speed threshold
 STOP_THRESHOLD = 0.02
@@ -14,6 +15,7 @@ class BehaviouralPlanner:
     def __init__(self, lookahead, lead_vehicle_lookahead):
         self._lookahead                     = lookahead
         self._follow_lead_vehicle_lookahead = lead_vehicle_lookahead
+        self._orientation_memory            = OrientationMemory()
         self._state_manager                 = StateManager(self)
         self._follow_lead_vehicle           = False
         self._obstacle_on_lane              = False
@@ -30,6 +32,9 @@ class BehaviouralPlanner:
 
     def set_lookahead(self, lookahead):
         self._lookahead = lookahead
+
+    def get_orientation_memory(self):
+        return self._orientation_memory
 
     def get_traffic_light_id(self):
         return self._traffic_light_id
@@ -71,7 +76,7 @@ class BehaviouralPlanner:
         return self._state_manager.get_state().NAME == DecelerateToPointState.NAME
 
     # Handles state transitions and computes the goal state.
-    def transition_state(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def transition_state(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         """Handles state transitions and computes the goal state.  
         
         args:
@@ -113,7 +118,7 @@ class BehaviouralPlanner:
                               before moving from stop sign.
         """
         self._emergency_brake_value = 0.0
-        self._state_manager.execute(waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights)
+        self._state_manager.execute(waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights)
 
     # Checks to see if we need to modify our velocity profile to accomodate the
     # lead vehicle.

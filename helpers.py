@@ -71,6 +71,14 @@ def segment_intersect(p11, p12, p21, p22):
     return False
 
 
+def is_vehicle_in_fov(v, ego_state, fov_angle=math.pi * 3/2):
+    """Check if the vehicle is the lead vehicle."""
+
+    vec_diff = v.pos[0] - ego_state[0], v.pos[1] - ego_state[1]
+    angle = angle_between(np.array([vec_diff]), np.array(move_along_orientation((0,0), ego_state[2], 1)))[0]
+
+    return angle < fov_angle / 2
+
 def filter_lead_vehicle_orientation(measurement_data, ego_state):
     """Obtain Lead Vehicle information."""
     lead_car_pos = []
@@ -95,6 +103,32 @@ def filter_lead_vehicle_orientation(measurement_data, ego_state):
                 lead_car_speed.append(agent.vehicle.forward_speed)
                 lead_car_dist.append(curr_dist)
     return list(zip(lead_car_pos, lead_car_length, lead_car_speed, lead_car_dist))
+
+
+def filter_neighbor_vehicles(measurement_data, ego_state):
+    """Obtain Neighbor Vehicle information."""
+    neighbor_car_pos = []
+    neighbor_car_length = []
+    neighbor_car_speed = []
+    neighbor_car_dist = []
+    for agent in measurement_data.non_player_agents:
+        if agent.HasField('vehicle'):
+            transform = agent.vehicle.transform
+            pos = [transform.location.x, transform.location.y]
+            yaw = math.radians(transform.rotation.yaw)
+
+            future_pos = move_along_orientation(pos, yaw, distance=2.6)
+
+            curr_dist = optimized_dist(pos, ego_state)
+            future_dist = optimized_dist(future_pos, ego_state)
+            is_ahead = curr_dist < future_dist
+
+            if is_ahead and min(abs(ego_state[2] - yaw), abs(ego_state[2] + yaw)) < math.pi / 4:
+                neighbor_car_pos.append(pos)
+                neighbor_car_length.append(agent.vehicle.bounding_box.extent.x)
+                neighbor_car_speed.append(agent.vehicle.forward_speed)
+                neighbor_car_dist.append(curr_dist)
+    return list(zip(neighbor_car_pos, neighbor_car_length, neighbor_car_speed, neighbor_car_dist))
 
 
 def check_for_path_intersection(waypoints, closest_index, goal_index, agents):

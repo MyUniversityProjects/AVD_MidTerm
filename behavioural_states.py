@@ -7,8 +7,8 @@ import numpy as np
 
 import constants
 from custom_agents import TrafficLightAdapter
-from helpers import ego_trajectory_intersect, check_for_path_intersection, angle_between, \
-    optimized_dist, ego_pedestrian_intersect
+from helpers import ego_trajectory_intersect, check_for_path_intersection, angle_between, move_along_orientation, \
+    optimized_dist, ego_pedestrian_intersect, segment_intersect
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -22,7 +22,7 @@ class BehaviouralState(ABC):
         assert self.NAME is not None, "Behavioural State does not have a NAME"
 
     @abstractmethod
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         pass
 
     def check_for_traffic_lights(self, waypoints, ego_state, closed_loop_speed, closest_index, goal_index, traffic_lights):
@@ -56,6 +56,24 @@ class BehaviouralState(ABC):
 
             if dangerous:
                 return math.sqrt(ped[1])
+        return None
+
+    def _check_dangerous_vehicles(self, ego_state, closed_loop_speed, vehicles, lookahead=13):
+        om = self._bp.get_orientation_memory()
+        for vehicle in vehicles:
+            vehicle_pos = vehicle.pos[:2]
+            yaw_difference = om.get_yaw_difference(vehicle.id)
+            max_iter = 1 if yaw_difference == 0 else 5
+            cur_yaw = vehicle.yaw
+            cur_pos = np.array(ego_state[:2])
+            for i in range(max_iter):
+                vehicle_future_pos = move_along_orientation(vehicle_pos, cur_yaw, lookahead)
+                ego_future_pos = move_along_orientation(cur_pos, ego_state[2], lookahead)
+                if segment_intersect(vehicle_pos, vehicle_future_pos, cur_pos, ego_future_pos):
+                    logging.info("Dangerous vehicle found with trajectory intersection!")
+                    return math.sqrt(vehicle.distance)
+                cur_pos = move_along_orientation(cur_pos, ego_state[2], closed_loop_speed/constants.FPS)
+                cur_yaw += yaw_difference
         return None
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
@@ -113,8 +131,9 @@ class BehaviouralState(ABC):
         # Otherwise, find our next waypoint.
         while wp_index < len(waypoints) - 1:
             arc_length += np.sqrt((waypoints[wp_index][0] - waypoints[wp_index + 1][0]) ** 2 + (
-                        waypoints[wp_index][1] - waypoints[wp_index + 1][1]) ** 2)
-            if arc_length > self._bp.get_lookahead(): break
+                waypoints[wp_index][1] - waypoints[wp_index + 1][1]) ** 2)
+            if arc_length > self._bp.get_lookahead():
+                break
             wp_index += 1
 
         return wp_index % len(waypoints)
@@ -143,14 +162,15 @@ class TrackSpeedState(BehaviouralState):
 
     NAME = "TRACK_SPEED"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         # Second, find the closest index to the ego vehicle.
         closest_len, closest_index = get_closest_index(waypoints, ego_state)
 
-        if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians):
+        if self._check_dangerous_pedestrians(
+                ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
+                ego_state, closed_loop_speed, vehicles):
             self._state_manager.state_transition(EmergencyState.NAME)
             return
-
         # Next, find the goal index that lies within the lookahead distance
         # along the waypoints.
         goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
@@ -181,12 +201,13 @@ class DecelerateToPointState(BehaviouralState):
 
     NAME = "DECELERATE_TO_POINT"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         # Second, find the closest index to the ego vehicle.
         closest_len, closest_index = get_closest_index(waypoints, ego_state)
         tl_id = self._bp.get_traffic_light_id()
 
-        if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians):
+        if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
+                ego_state, closed_loop_speed, vehicles):
             self._state_manager.state_transition(EmergencyState.NAME)
         elif abs(closed_loop_speed) <= constants.STOP_THRESHOLD:
             self._state_manager.state_transition(StopState.NAME)
@@ -204,7 +225,7 @@ class StopState(BehaviouralState):
 
     NAME = "STOP"
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         # We have stayed stopped until traffic light turns green and there
         # aren't any pedestrian.
         tl_id = self._bp.get_traffic_light_id()
@@ -230,13 +251,16 @@ class EmergencyState(BehaviouralState):
         self._start_time = datetime.now()
         self._last_is_stopped = False
 
-    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
+    def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         speed = abs(closed_loop_speed)
         curr_is_stopped = speed <= constants.STOP_THRESHOLD
 
         if not curr_is_stopped:
             _, closest_index = get_closest_index(waypoints, ego_state)
-            distance = self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians)
+            ped_distance = self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians)
+            vehicle_distance = self._check_dangerous_vehicles(ego_state, closed_loop_speed, vehicles)
+            distance = min([d for d in [ped_distance, vehicle_distance] if d is not None], default=None)
+
             if distance is not None:
                 brake_value = self._compute_brake_value(speed, distance)
                 self._bp.set_emergency_brake_value(brake_value)
@@ -275,8 +299,8 @@ class StateManager:
     def get_state(self):
         return self._state
 
-    def execute(self, waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights):
-        self._state.handle(waypoints, ego_state, closed_loop_speed, pedestrians, traffic_lights)
+    def execute(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
+        self._state.handle(waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights)
 
     def state_transition(self, new_state_name):
         logging.info(f"StateChange: {self._state.NAME} => {new_state_name} (Behavioural Planner)")

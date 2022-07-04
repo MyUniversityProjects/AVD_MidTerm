@@ -15,15 +15,16 @@ import matplotlib.pyplot as plt
 from numpy.core.defchararray import index
 import controller2d
 import configparser
-from custom_agents import TrafficLightAdapter 
+from custom_agents import TrafficLightAdapter, VehicleAdapter
 import local_planner
 import behavioural_planner
 import cv2
 import json 
 from math import sin, cos, pi, tan, sqrt
+import constants
 
 # Script level imports
-from helpers import filter_lead_vehicle_orientation, optimized_dist
+from helpers import filter_lead_vehicle_orientation, is_vehicle_in_fov, optimized_dist
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
 import live_plotter as lv   # Custom live plotting library
@@ -745,6 +746,7 @@ def exec_waypoint_nav_demo(args):
                                         STOP_LINE_BUFFER)
         bp = behavioural_planner.BehaviouralPlanner(BP_LOOKAHEAD_BASE,
                                                     LEAD_VEHICLE_LOOKAHEAD)
+        orientation_memory = bp.get_orientation_memory()
 
         #############################################
         # Scenario Execution Loop
@@ -756,7 +758,7 @@ def exec_waypoint_nav_demo(args):
         reached_the_end = False
         skip_first_frame = True
 
-        # Initialize the current timestamp.
+        # Initialize the current timestamp
         current_timestamp = start_timestamp
 
         # Initialize collision history
@@ -766,6 +768,8 @@ def exec_waypoint_nav_demo(args):
 
         wait_seconds = START_DELAY
         delay_counter = wait_seconds * 30
+
+        # Initialize orientation memory
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
             measurement_data, sensor_data = client.read_data()
@@ -840,6 +844,16 @@ def exec_waypoint_nav_demo(args):
                 pedestrians = [ped for ped in pedestrians if ped[1] < 500]  # Ignore very far pedestrians
                 pedestrians = sorted(pedestrians, key=lambda ped: ped[1])
 
+                # Retrieve all other vehicles
+                orientation_memory.next_step()
+                vehicles = [VehicleAdapter(a, ego_state) for a in measurement_data.non_player_agents if a.HasField('vehicle')]
+                vehicles = [v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_OPT_DISTANCE]
+                vehicles = [v for v in vehicles if v.speed > constants.STOP_THRESHOLD]
+                vehicles = [v for v in vehicles if is_vehicle_in_fov(v, ego_state)]
+                for v in vehicles:
+                    orientation_memory.update_new(v.id, v.yaw)
+
+
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
 
@@ -848,7 +862,8 @@ def exec_waypoint_nav_demo(args):
                     quit(-10)
 
                 # Perform a state transition in the behavioural planner.
-                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, traffic_lights)
+                # TODO: Add vehicles
+                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, vehicles, traffic_lights)
 
                 if not bp.in_emergency() or not bp.in_stop():
                     # Check to see if we need to follow the lead vehicle.

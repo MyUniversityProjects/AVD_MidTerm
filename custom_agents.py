@@ -1,4 +1,7 @@
 import numpy as np
+import math
+
+from helpers import optimized_dist
 
 
 class TrafficLightAdapter:
@@ -38,3 +41,41 @@ class TrafficLightAdapter:
 
     def __repr__(self):
         return str(self)
+
+
+class VehicleAdapter:
+    # TODO: Change 30
+    NEIGHBOR_OPT_DISTANCE = 30 ** 2
+
+    def __init__(self, agent, ego_state):
+        self.agent = agent
+        self.id = agent.id
+        v = agent.vehicle
+        self.pos = [v.transform.location.x, v.transform.location.y, v.transform.location.z]
+        self.yaw = math.radians(v.transform.rotation.yaw)
+        self.speed = v.forward_speed
+        self.distance = optimized_dist(ego_state, self.pos)
+
+    def __str__(self):
+        return f'Vehicle(id={self.id}, pos={self.pos}, yaw={self.yaw}, speed={self.speed}, distance={self.distance})'
+
+    def __repr__(self):
+        return str(self)
+
+
+class OrientationMemory:
+    def __init__(self):
+        self.old = {}
+        self.new = {}
+
+    def update_new(self, id, yaw):
+        self.new[id] = yaw
+
+    def get_yaw_difference(self, vehicle_id):
+        if vehicle_id in self.new and vehicle_id in self.old:
+            return self.new[vehicle_id] - self.old[vehicle_id]
+        return 0
+
+    def next_step(self):
+        self.old = self.new
+        self.new = {}
