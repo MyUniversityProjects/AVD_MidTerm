@@ -168,9 +168,10 @@ class Controller2D(object):
             ######################################################
 
             Ts = 0.033      # Sample time - 30FPS <-> 1/30
-            kp = 1.0       # Proportional Gain
-            ki = 0.5       # Integral Gain
-            kd = 0.1       # Derivative Gain
+
+            kp = 0.5        # Proportional Gain
+            ki = 0.42       # Integral Gain
+            kd = 0.12       # Derivative Gain
             
             # Constants for discrete implementation
             q0 = kp + (Ts * ki)  + (kd / Ts)
@@ -210,16 +211,18 @@ class Controller2D(object):
             # STANLEY CONTROL - PARAMETERS
             ######################################################
 
-            k_e = 1.0
-            k_v = 1.0
-
+            k_e = 0.6
+            k_v = 10
+            heading_lookahead = 500
             
             ######################################################
             # STANLEY CONTROL - ALGORITHM
             ######################################################
 
+
             # Heading error
-            yaw_path = np.arctan2(waypoints[-1][1]-waypoints[0][1], waypoints[-1][0]-waypoints[0][0])
+            ahead_index = min(heading_lookahead, len(waypoints) - 1)
+            yaw_path = np.arctan2(waypoints[ahead_index][1]-waypoints[0][1], waypoints[ahead_index][0]-waypoints[0][0])
             yaw_diff = yaw_path - yaw 
             # Projection of the angle in the range [-pi,pi] 
             if yaw_diff > np.pi:

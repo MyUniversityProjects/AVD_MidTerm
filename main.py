@@ -13,7 +13,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 from numpy.core.defchararray import index
-import controller2d
+import controller2d_AR as controller2d
 import configparser
 from custom_agents import TrafficLightAdapter, VehicleAdapter
 import local_planner
@@ -41,11 +41,11 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 6          #  spawn index for player
+PLAYER_START_INDEX = 10          #  spawn index for player
 DESTINATION_INDEX = 24          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 1     # total number of pedestrians to spawn
-NUM_VEHICLES           = 99     # total number of vehicles to spawn
-SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
+NUM_VEHICLES           = 1     # total number of vehicles to spawn
+SEED_PEDESTRIANS       = 1      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
