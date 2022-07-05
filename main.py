@@ -13,7 +13,8 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 from numpy.core.defchararray import index
-import controller2d
+import controller2d_AR as controller2d_stanley
+import controller2d as controller2d_pid
 import configparser
 from custom_agents import TrafficLightAdapter, VehicleAdapter
 import local_planner
@@ -49,7 +50,7 @@ SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
-WAIT_TIME_BEFORE_START = 15.00   # game seconds (time before controller start)
+WAIT_TIME_BEFORE_START = 13.00   # game seconds (time before controller start)
 START_DELAY            = 0      # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
@@ -434,9 +435,9 @@ def exec_waypoint_nav_demo(args):
         demo_opt = config['Demo Parameters']
 
         # Get options
-        enable_live_plot = demo_opt.get('live_plotting', 'true').capitalize()
-        enable_live_plot = enable_live_plot == 'True'
+        enable_live_plot = demo_opt.get('live_plotting', 'true').capitalize() == 'True'
         live_plot_period = float(demo_opt.get('live_plotting_period', 0))
+        enable_stanley_controller = demo_opt.get('enable_stanley_controller', 'true').capitalize() == 'True'
 
         # Set options
         live_plot_timer = Timer(live_plot_period)
@@ -621,7 +622,10 @@ def exec_waypoint_nav_demo(args):
         #############################################
         # This is where we take the controller2d.py class
         # and apply it to the simulator
-        controller = controller2d.Controller2D(waypoints)
+        if enable_stanley_controller:
+            controller = controller2d_stanley.Controller2D(waypoints)
+        else:
+            controller = controller2d_pid.Controller2D(waypoints)
 
         #############################################
         # Vehicle Trajectory Live Plotting Setup
@@ -780,7 +784,6 @@ def exec_waypoint_nav_demo(args):
             
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
-            traffic_lights = []
 
             # UPDATE HERE the obstacles list
             obstacles = []

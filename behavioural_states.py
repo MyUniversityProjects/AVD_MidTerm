@@ -159,7 +159,6 @@ class TrackSpeedState(BehaviouralState):
         if self._check_dangerous_pedestrians(
                 ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
                 ego_state, waypoints, closed_loop_speed, vehicles):
-            print("Transiziona")
             self._state_manager.state_transition(EmergencyState.NAME)
             return
         # Next, find the goal index that lies within the lookahead distance
