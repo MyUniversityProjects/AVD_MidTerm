@@ -41,15 +41,15 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 6          #  spawn index for player
+PLAYER_START_INDEX = 140          #  spawn index for player
 DESTINATION_INDEX = 24          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 1     # total number of pedestrians to spawn
-NUM_VEHICLES           = 99     # total number of vehicles to spawn
+NUM_VEHICLES           = 299     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
-WAIT_TIME_BEFORE_START = 1.00   # game seconds (time before controller start)
+WAIT_TIME_BEFORE_START = 15.00   # game seconds (time before controller start)
 START_DELAY            = 0      # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
@@ -780,6 +780,7 @@ def exec_waypoint_nav_demo(args):
             
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
+            traffic_lights = []
 
             # UPDATE HERE the obstacles list
             obstacles = []
@@ -850,6 +851,7 @@ def exec_waypoint_nav_demo(args):
                 vehicles = [v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_OPT_DISTANCE]
                 vehicles = [v for v in vehicles if v.speed > constants.STOP_THRESHOLD]
                 vehicles = [v for v in vehicles if is_vehicle_in_fov(v, ego_state)]
+                vehicles = sorted(vehicles, key=lambda v: v.distance)
                 for v in vehicles:
                     orientation_memory.update_new(v.id, v.yaw)
 
@@ -862,7 +864,6 @@ def exec_waypoint_nav_demo(args):
                     quit(-10)
 
                 # Perform a state transition in the behavioural planner.
-                # TODO: Add vehicles
                 bp.transition_state(waypoints, ego_state, current_speed, pedestrians, vehicles, traffic_lights)
 
                 if not bp.in_emergency() or not bp.in_stop():

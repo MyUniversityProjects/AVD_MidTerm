@@ -7,7 +7,7 @@ import numpy as np
 
 import constants
 from custom_agents import TrafficLightAdapter
-from helpers import ego_trajectory_intersect, check_for_path_intersection, angle_between, move_along_orientation, \
+from helpers import ego_trajectory_intersect, check_for_path_intersection, angle_between, ego_vehicle_trajectory_intersect, get_closest_index, move_along_orientation, \
     optimized_dist, ego_pedestrian_intersect, segment_intersect
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -58,22 +58,12 @@ class BehaviouralState(ABC):
                 return math.sqrt(ped[1])
         return None
 
-    def _check_dangerous_vehicles(self, ego_state, closed_loop_speed, vehicles, lookahead=13):
+    def _check_dangerous_vehicles(self, ego_state, waypoints, closed_loop_speed, vehicles, ego_lookahead=13):
         om = self._bp.get_orientation_memory()
         for vehicle in vehicles:
-            vehicle_pos = vehicle.pos[:2]
-            yaw_difference = om.get_yaw_difference(vehicle.id)
-            max_iter = 1 if yaw_difference == 0 else 5
-            cur_yaw = vehicle.yaw
-            cur_pos = np.array(ego_state[:2])
-            for i in range(max_iter):
-                vehicle_future_pos = move_along_orientation(vehicle_pos, cur_yaw, lookahead)
-                ego_future_pos = move_along_orientation(cur_pos, ego_state[2], lookahead)
-                if segment_intersect(vehicle_pos, vehicle_future_pos, cur_pos, ego_future_pos):
-                    logging.info("Dangerous vehicle found with trajectory intersection!")
-                    return math.sqrt(vehicle.distance)
-                cur_pos = move_along_orientation(cur_pos, ego_state[2], closed_loop_speed/constants.FPS)
-                cur_yaw += yaw_difference
+            if ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, om, waypoints, ego_lookahead):
+                logging.info("Dangerous vehicle found with trajectory intersection!")
+                return max(math.sqrt(vehicle.distance) - constants.CAR_LENGTH, 0.1) # distances from centers: collision happens when distance == car_length
         return None
 
     # Gets the goal index in the list of waypoints, based on the lookahead and
@@ -168,7 +158,8 @@ class TrackSpeedState(BehaviouralState):
 
         if self._check_dangerous_pedestrians(
                 ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
-                ego_state, closed_loop_speed, vehicles):
+                ego_state, waypoints, closed_loop_speed, vehicles):
+            print("Transiziona")
             self._state_manager.state_transition(EmergencyState.NAME)
             return
         # Next, find the goal index that lies within the lookahead distance
@@ -207,7 +198,7 @@ class DecelerateToPointState(BehaviouralState):
         tl_id = self._bp.get_traffic_light_id()
 
         if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
-                ego_state, closed_loop_speed, vehicles):
+                ego_state, waypoints, closed_loop_speed, vehicles):
             self._state_manager.state_transition(EmergencyState.NAME)
         elif abs(closed_loop_speed) <= constants.STOP_THRESHOLD:
             self._state_manager.state_transition(StopState.NAME)
@@ -258,7 +249,7 @@ class EmergencyState(BehaviouralState):
         if not curr_is_stopped:
             _, closest_index = get_closest_index(waypoints, ego_state)
             ped_distance = self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians)
-            vehicle_distance = self._check_dangerous_vehicles(ego_state, closed_loop_speed, vehicles)
+            vehicle_distance = self._check_dangerous_vehicles(ego_state, waypoints, closed_loop_speed, vehicles)
             distance = min([d for d in [ped_distance, vehicle_distance] if d is not None], default=None)
 
             if distance is not None:
@@ -306,46 +297,3 @@ class StateManager:
         logging.info(f"StateChange: {self._state.NAME} => {new_state_name} (Behavioural Planner)")
         self._state = self._states[new_state_name]
 
-
-# Compute the waypoint index that is closest to the ego vehicle, and return
-# it as well as the distance from the ego vehicle to that waypoint.
-def get_closest_index(waypoints, ego_state):
-    """Gets closest index a given list of waypoints to the vehicle position.
-
-    args:
-        waypoints: current waypoints to track. (global frame)
-            length and speed in m and m/s.
-            (includes speed to track at each x,y location.)
-            format: [[x0, y0, v0],
-                     [x1, y1, v1],
-                     ...
-                     [xn, yn, vn]]
-            example:
-                waypoints[2][1]:
-                returns the 3rd waypoint's y position
-
-                waypoints[5]:
-                returns [x5, y5, v5] (6th waypoint)
-        ego_state: ego state vector for the vehicle. (global frame)
-            format: [ego_x, ego_y, ego_yaw, ego_open_loop_speed]
-                ego_x and ego_y     : position (m)
-                ego_yaw             : top-down orientation [-pi to pi]
-                ego_open_loop_speed : open loop speed (m/s)
-
-    returns:
-        [closest_len, closest_index]:
-            closest_len: length (m) to the closest waypoint from the vehicle.
-            closest_index: index of the waypoint which is closest to the vehicle.
-                i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
-    """
-    closest_len = float('Inf')
-    closest_index = 0
-
-    for i in range(len(waypoints)):
-        temp = (waypoints[i][0] - ego_state[0])**2 + (waypoints[i][1] - ego_state[1])**2
-        if temp < closest_len:
-            closest_len = temp
-            closest_index = i
-    closest_len = np.sqrt(closest_len)
-
-    return closest_len, closest_index

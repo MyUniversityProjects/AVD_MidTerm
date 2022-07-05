@@ -262,3 +262,89 @@ def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_looka
 
         len_counter += wp_len
     return False
+
+def ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, orientation_memory, waypoints, ego_lookahead=10, vehicle_lookahead=10):
+    vehicle_pos = vehicle.pos[:2]
+    yaw_difference = orientation_memory.get_yaw_difference(vehicle.id)
+    max_iter = 1 if yaw_difference < 0.05 else 5
+    cur_yaw = vehicle.yaw
+    cur_pos = np.array(ego_state[:2])
+
+    
+    for _ in range(max_iter):
+        vehicle_future_pos = move_along_orientation(vehicle_pos, cur_yaw, vehicle_lookahead)
+        cur_pos = move_along_orientation(cur_pos, ego_state[2], closed_loop_speed/constants.FPS)
+        cur_yaw += yaw_difference
+
+
+        _, closest_index = get_closest_index(waypoints, cur_pos)
+        points = _get_ego_trajectory_points([*cur_pos, cur_yaw], waypoints, closest_index)
+        len_counter = 0
+        for i in range(len(points) - 1):
+            if len_counter >= ego_lookahead:
+                break
+            wp_1 = np.array(points[i][0:2])
+            wp_2 = np.array(points[i + 1][0:2])
+
+            wp_len = math.sqrt(optimized_dist(wp_1, wp_2))
+            if wp_len + len_counter >= ego_lookahead:
+                len_remaining = ego_lookahead - len_counter
+                centered_wp_2 = wp_2 - wp_1
+                wp_2 = (centered_wp_2 / np.linalg.norm(centered_wp_2) * len_remaining) + wp_1
+
+            ortho_angle = angle_vector(wp_1 - wp_2) + math.pi / 2.0
+            offset_vec = np.array([math.cos(ortho_angle), math.sin(ortho_angle)]) * constants.CAR_WIDTH / 2
+
+            for k in [-1, 1]:
+                wpk_1 = wp_1 + k * offset_vec
+                wpk_2 = wp_2 + k * offset_vec
+
+                if segment_intersect(wpk_1, wpk_2, vehicle_pos, vehicle_future_pos):
+                    return True
+
+            len_counter += wp_len
+    return False
+
+
+# Compute the waypoint index that is closest to the ego vehicle, and return
+# it as well as the distance from the ego vehicle to that waypoint.
+def get_closest_index(waypoints, ego_state):
+    """Gets closest index a given list of waypoints to the vehicle position.
+
+    args:
+        waypoints: current waypoints to track. (global frame)
+            length and speed in m and m/s.
+            (includes speed to track at each x,y location.)
+            format: [[x0, y0, v0],
+                     [x1, y1, v1],
+                     ...
+                     [xn, yn, vn]]
+            example:
+                waypoints[2][1]:
+                returns the 3rd waypoint's y position
+
+                waypoints[5]:
+                returns [x5, y5, v5] (6th waypoint)
+        ego_state: ego state vector for the vehicle. (global frame)
+            format: [ego_x, ego_y, ego_yaw, ego_open_loop_speed]
+                ego_x and ego_y     : position (m)
+                ego_yaw             : top-down orientation [-pi to pi]
+                ego_open_loop_speed : open loop speed (m/s)
+
+    returns:
+        [closest_len, closest_index]:
+            closest_len: length (m) to the closest waypoint from the vehicle.
+            closest_index: index of the waypoint which is closest to the vehicle.
+                i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
+    """
+    closest_len = float('Inf')
+    closest_index = 0
+
+    for i in range(len(waypoints)):
+        temp = (waypoints[i][0] - ego_state[0])**2 + (waypoints[i][1] - ego_state[1])**2
+        if temp < closest_len:
+            closest_len = temp
+            closest_index = i
+    closest_len = np.sqrt(closest_len)
+
+    return closest_len, closest_index
