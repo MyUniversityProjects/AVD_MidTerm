@@ -16,6 +16,8 @@ from numpy.core.defchararray import index
 import controller2d_AR as controller2d_stanley
 import controller2d as controller2d_pid
 import configparser
+
+import time_utils
 from custom_agents import TrafficLightAdapter, VehicleAdapter
 import local_planner
 import behavioural_planner
@@ -26,31 +28,34 @@ import constants
 
 # Script level imports
 from helpers import filter_lead_vehicle_orientation, is_vehicle_in_fov, optimized_dist
+from traffic_light_detector import TrafficLightDetector
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
+from interface import Interface
 import live_plotter as lv   # Custom live plotting library
-from carla            import sensor
+from carla            import sensor, image_converter
 from carla.client     import make_carla_client, VehicleControl
 from carla.settings   import CarlaSettings
 from carla.tcp        import TCPConnectionError
 from carla.controller import utils
 from carla.sensor import Camera
-from carla.image_converter import labels_to_array, depth_to_array, to_bgra_array
 from carla.planner.city_track import CityTrack
 
 
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 140          #  spawn index for player
+PLAYER_START_INDEX = 23          #  spawn index for player
 DESTINATION_INDEX = 24          # Setting a Destination HERE
-NUM_PEDESTRIANS        = 1     # total number of pedestrians to spawn
-NUM_VEHICLES           = 299     # total number of vehicles to spawn
+NUM_PEDESTRIANS        = 100     # total number of pedestrians to spawn
+NUM_VEHICLES           = 100     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
+SHOW_CAMERA_VIEW       = True
+SHOW_INTERVAL          = 0.5
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
-WAIT_TIME_BEFORE_START = 13.00   # game seconds (time before controller start)
+WAIT_TIME_BEFORE_START = 0.00   # game seconds (time before controller start)
 START_DELAY            = 0      # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
@@ -119,10 +124,10 @@ CONTROLLER_OUTPUT_FOLDER = os.path.dirname(os.path.realpath(__file__)) +\
 # Camera parameters
 camera_parameters = {}
 camera_parameters['x'] = 1.8
-camera_parameters['y'] = 0
+camera_parameters['y'] = 1.3
 camera_parameters['z'] = 1.3
-camera_parameters['width'] = 200
-camera_parameters['height'] = 200
+camera_parameters['width'] = 416
+camera_parameters['height'] = 416
 camera_parameters['fov'] = 90
 
 def rotate_x(angle):
@@ -210,6 +215,24 @@ def make_carla_settings(args):
     camera_fov = camera_parameters['fov']
 
     # Declare here your sensors
+    # Adding RGB Camera
+    cameraRGB = Camera("CameraRGB", PostProcessing='SceneFinal')
+    cameraRGB.set_image_size(camera_width, camera_height)
+    cameraRGB.set(FOV=camera_fov)
+    cameraRGB.set_position(cam_x_pos, cam_y_pos, cam_height)
+    settings.add_sensor(cameraRGB)
+
+    cameraSemanticSegmentation = Camera("CameraSemanticSegmentation", PostProcessing="SemanticSegmentation")
+    cameraSemanticSegmentation.set_image_size(camera_width, camera_height)
+    cameraSemanticSegmentation.set(FOV=camera_fov)
+    cameraSemanticSegmentation.set_position(cam_x_pos, cam_y_pos, cam_height)
+    settings.add_sensor(cameraSemanticSegmentation)
+
+    cameraDepth = Camera("CameraDepth", PostProcessing="Depth")
+    cameraDepth.set_image_size(camera_width, camera_height)
+    cameraDepth.set(FOV=camera_fov)
+    cameraDepth.set_position(cam_x_pos, cam_y_pos, cam_height)
+    settings.add_sensor(cameraDepth)
 
     return settings
 
@@ -774,6 +797,8 @@ def exec_waypoint_nav_demo(args):
         delay_counter = wait_seconds * 30
 
         # Initialize orientation memory
+        interface = Interface(render_interval=SHOW_INTERVAL)
+        tl_detector = TrafficLightDetector()
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
             measurement_data, sensor_data = client.read_data()
@@ -781,7 +806,13 @@ def exec_waypoint_nav_demo(args):
                 delay_counter -= 1
                 send_control_command(client, throttle=0, steer=0, brake=0)
                 continue
-            
+
+            if SHOW_CAMERA_VIEW:
+                interface.show_images(sensor_data)
+
+            rgb_image = sensor_data.get('CameraRGB', None)
+            if rgb_image is not None:
+                tl_detector.detect(image_converter.to_rgb_array(rgb_image))
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
 

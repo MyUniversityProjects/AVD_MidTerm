@@ -6,3 +6,8 @@ Pillow
 opencv-python
 pygame
 scipy
+keras==2.3.1
+tensorflow==1.14.0
+pandas==0.25.3
+scikit-learn==0.24.2
+h5py==2.10.0
