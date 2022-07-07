@@ -75,9 +75,10 @@ def is_vehicle_in_fov(v, ego_state, fov_angle=math.pi * 3/2):
     """Check if the vehicle is the lead vehicle."""
 
     vec_diff = v.pos[0] - ego_state[0], v.pos[1] - ego_state[1]
-    angle = angle_between(np.array([vec_diff]), np.array(move_along_orientation((0,0), ego_state[2], 1)))[0]
+    angle = angle_between(np.array([vec_diff]), np.array(move_along_orientation((0, 0), ego_state[2], 1)))[0]
 
     return angle < fov_angle / 2
+
 
 def filter_lead_vehicle_orientation(measurement_data, ego_state):
     """Obtain Lead Vehicle information."""
@@ -263,6 +264,7 @@ def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_looka
         len_counter += wp_len
     return False
 
+
 def ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, orientation_memory, waypoints, ego_lookahead=10, vehicle_lookahead=10):
     vehicle_pos = vehicle.pos[:2]
     yaw_difference = orientation_memory.get_yaw_difference(vehicle.id)
@@ -270,12 +272,10 @@ def ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, orie
     cur_yaw = vehicle.yaw
     cur_pos = np.array(ego_state[:2])
 
-    
     for _ in range(max_iter):
         vehicle_future_pos = move_along_orientation(vehicle_pos, cur_yaw, vehicle_lookahead)
         cur_pos = move_along_orientation(cur_pos, ego_state[2], closed_loop_speed/constants.FPS)
         cur_yaw += yaw_difference
-
 
         _, closest_index = get_closest_index(waypoints, cur_pos)
         points = _get_ego_trajectory_points([*cur_pos, cur_yaw], waypoints, closest_index)
@@ -348,3 +348,32 @@ def get_closest_index(waypoints, ego_state):
     closest_len = np.sqrt(closest_len)
 
     return closest_len, closest_index
+
+
+def ego_lead_intersect(ego_state, vehicles, waypoints, closed_loop_speed, ego_lookahead=0.5):
+    # vehicles must be sorted by distances to ego
+    ego_lookahead = ego_lookahead * closed_loop_speed if closed_loop_speed > 1 else ego_lookahead
+    ego_lookahead += 15
+    _, closest_index = get_closest_index(waypoints, ego_state)
+    points = _get_ego_trajectory_points(ego_state, waypoints, closest_index)
+    len_counter = 0
+    for i in range(len(points) - 1):
+        if len_counter >= ego_lookahead:
+            break
+        wp_1 = np.array(points[i][0:2])
+        wp_2 = np.array(points[i + 1][0:2])
+        wp_len = math.sqrt(optimized_dist(wp_1, wp_2))
+        if wp_len + len_counter >= ego_lookahead:
+            len_remaining = ego_lookahead - len_counter
+            centered_wp_2 = wp_2 - wp_1
+            wp_2 = (centered_wp_2 / np.linalg.norm(centered_wp_2) * len_remaining) + wp_1
+        ortho_angle = angle_vector(wp_1 - wp_2) + math.pi / 2.0
+        offset_vec = np.array([math.cos(ortho_angle), math.sin(ortho_angle)]) * constants.CAR_WIDTH
+        for vehicle in vehicles:
+            if segment_intersect(wp_1, wp_2, vehicle.pos - offset_vec, vehicle.pos + offset_vec):
+
+                yaw_difference = angle_between(wp_2-wp_1, np.array(move_along_orientation((0, 0), vehicle.yaw, 1)))
+                if yaw_difference < math.pi / 4.0:
+                    return vehicle
+        len_counter += wp_len
+    return None

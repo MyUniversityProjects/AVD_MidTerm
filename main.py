@@ -25,7 +25,7 @@ from math import sin, cos, pi, tan, sqrt
 import constants
 
 # Script level imports
-from helpers import filter_lead_vehicle_orientation, is_vehicle_in_fov, optimized_dist
+from helpers import ego_lead_intersect, filter_lead_vehicle_orientation, is_vehicle_in_fov, optimized_dist
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
 import live_plotter as lv   # Custom live plotting library
@@ -42,15 +42,15 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 140          #  spawn index for player
-DESTINATION_INDEX = 24          # Setting a Destination HERE
+PLAYER_START_INDEX = 10          #  spawn index for player
+DESTINATION_INDEX = 140          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 1     # total number of pedestrians to spawn
 NUM_VEHICLES           = 299     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
 SEED_VEHICLES          = 3      # seed for vehicle spawn randomizer
 
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
-WAIT_TIME_BEFORE_START = 13.00   # game seconds (time before controller start)
+WAIT_TIME_BEFORE_START = 1.00   # game seconds (time before controller start)
 START_DELAY            = 0      # s
 TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
@@ -94,7 +94,7 @@ BP_LOOKAHEAD_TIME      = 1.0              # s
 PATH_OFFSET            = 1.5              # m
 CIRCLE_OFFSETS         = [-1.0, 1.0, 3.0] # m
 CIRCLE_RADII           = [1.5, 1.5, 1.5]  # m
-TIME_GAP               = 1.0              # s
+TIME_GAP               = 0.6              # s
 PATH_SELECT_WEIGHT     = 10
 A_MAX                  = 2.5              # m/s^2
 SLOW_SPEED             = 2.0              # m/s
@@ -437,7 +437,7 @@ def exec_waypoint_nav_demo(args):
         # Get options
         enable_live_plot = demo_opt.get('live_plotting', 'true').capitalize() == 'True'
         live_plot_period = float(demo_opt.get('live_plotting_period', 0))
-        enable_stanley_controller = demo_opt.get('enable_stanley_controller', 'true').capitalize() == 'True'
+        enable_stanley_controller = demo_opt.get('use_stanley_controller', 'true').capitalize() == 'True'
 
         # Set options
         live_plot_timer = Timer(live_plot_period)
@@ -773,6 +773,10 @@ def exec_waypoint_nav_demo(args):
         wait_seconds = START_DELAY
         delay_counter = wait_seconds * 30
 
+        cmd_throttle = 0.0
+        cmd_steer = 0.0
+        cmd_brake = 0.0
+
         # Initialize orientation memory
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
@@ -827,6 +831,7 @@ def exec_waypoint_nav_demo(args):
             # stored in the variable LP_FREQUENCY_DIVISOR, as it is analogous
             # to be operating at a frequency that is a division to the 
             # simulation frequency.
+ 
             if frame % LP_FREQUENCY_DIVISOR == 0:
                 # Compute open loop speed estimate.
                 open_loop_speed = lp._velocity_planner.get_open_loop_speed(current_timestamp - prev_timestamp)
@@ -834,11 +839,6 @@ def exec_waypoint_nav_demo(args):
                 # Calculate the goal state set in the local frame for the local planner.
                 # Current speed should be open loop for the velocity profile generation.
                 ego_state = [current_x, current_y, current_yaw, open_loop_speed]
-
-                # Retrieve all lead vehicle and order them by distance
-                lead_cars = filter_lead_vehicle_orientation(measurement_data, ego_state)
-                lead_car_ordered = sorted(lead_cars, key=lambda t: t[-1])
-                closest_car = lead_car_ordered[0] if len(lead_car_ordered) > 0 else None
 
                 # Retrieve all pedestrians
                 pedestrians = [a.pedestrian for a in measurement_data.non_player_agents if a.HasField('pedestrian')]
@@ -850,14 +850,13 @@ def exec_waypoint_nav_demo(args):
 
                 # Retrieve all other vehicles
                 orientation_memory.next_step()
-                vehicles = [VehicleAdapter(a, ego_state) for a in measurement_data.non_player_agents if a.HasField('vehicle')]
-                vehicles = [v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_OPT_DISTANCE]
-                vehicles = [v for v in vehicles if v.speed > constants.STOP_THRESHOLD]
-                vehicles = [v for v in vehicles if is_vehicle_in_fov(v, ego_state)]
+                vehicles = (VehicleAdapter(a, ego_state) for a in measurement_data.non_player_agents if a.HasField('vehicle'))
+                vehicles = (v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_OPT_DISTANCE)
+                vehicles = (v for v in vehicles if is_vehicle_in_fov(v, ego_state))
                 vehicles = sorted(vehicles, key=lambda v: v.distance)
-                for v in vehicles:
-                    orientation_memory.update_new(v.id, v.yaw)
-
+                    
+                # Retrieve lead vehicle
+                lead_vehicle = ego_lead_intersect(ego_state, vehicles, waypoints, closed_loop_speed=current_speed)
 
                 # Set lookahead based on current speed.
                 bp.set_lookahead(BP_LOOKAHEAD_BASE + BP_LOOKAHEAD_TIME * open_loop_speed)
@@ -866,15 +865,19 @@ def exec_waypoint_nav_demo(args):
                     logging.info("Collision found. System shutdown.")
                     quit(-10)
 
+                # Filter out stopped vehicles
+                moving_vehicles = [v for v in vehicles if v.speed > constants.STOP_THRESHOLD]
+                
+                # Store current yaws for moving vehicles
+                for v in moving_vehicles:
+                    orientation_memory.update_new(v.id, v.yaw)
+
                 # Perform a state transition in the behavioural planner.
-                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, vehicles, traffic_lights)
+                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, moving_vehicles, traffic_lights)
 
                 if not bp.in_emergency() or not bp.in_stop():
                     # Check to see if we need to follow the lead vehicle.
-                    if closest_car is not None:
-                        bp.check_for_lead_vehicle(ego_state, closest_car[0])
-                    else:
-                        bp.set_following_lead_vehicle(False)
+                    bp.set_following_lead_vehicle(lead_vehicle is not None)
 
                     # Compute the goal state set from the behavioural planner's computed goal state.
                     goal_state_set = lp.get_goal_state_set(bp._goal_index, bp._goal_state, waypoints, ego_state)
@@ -900,7 +903,7 @@ def exec_waypoint_nav_demo(args):
                     if best_path is not None:
                         # Compute the velocity profile for the path, and compute the waypoints.
                         desired_speed = bp._goal_state[2]
-                        lead_car_state = [closest_car[0][0], closest_car[0][1], closest_car[2]] if closest_car is not None else None
+                        lead_car_state = [lead_vehicle.pos[0], lead_vehicle.pos[1], lead_vehicle.speed] if lead_vehicle is not None else None
                         decelerate_to_stop = bp.is_decelerating()
                         local_waypoints = lp._velocity_planner.compute_velocity_profile(best_path, desired_speed, ego_state, current_speed, decelerate_to_stop, lead_car_state, bp._follow_lead_vehicle)
 
