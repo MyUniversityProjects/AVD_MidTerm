@@ -122,7 +122,7 @@ class VelocityPlanner:
         # speed by the time we reach the time gap point.
         elif lead_car_state is not None and follow_lead_vehicle:
             profile = self.follow_profile(path, start_speed, desired_speed, 
-                                          lead_car_state)
+                                          ego_state, lead_car_state)
 
         # Otherwise, compute the profile to reach our desired speed.
         else:
@@ -294,7 +294,7 @@ class VelocityPlanner:
         return profile
 
     # Computes a profile for following a lead vehicle..
-    def follow_profile(self, path, start_speed, desired_speed, lead_car_state):
+    def follow_profile(self, path, start_speed, desired_speed, ego_state, lead_car_state):
         """Computes the velocity profile for following a lead vehicle.
         
         args:
@@ -308,6 +308,11 @@ class VelocityPlanner:
                 It is assumed that the stop line is at the end of the path.
             start_speed: speed which the vehicle starts with (m/s)
             desired_speed: speed which the vehicle should reach (m/s)
+            ego_state: ego state vector for the vehicle, in the global frame.
+                format: [ego_x, ego_y, ego_yaw, ego_open_loop_speed]
+                    ego_x and ego_y     : position (m)
+                    ego_yaw             : top-down orientation [-pi to pi]
+                    ego_open_loop_speed : open loop speed (m/s)
             lead_car_state: the lead vehicle current state.
                 Format: [lead_car_x, lead_car_y, lead_car_speed]
                     lead_car_x and lead_car_y   : position (m)
@@ -346,7 +351,10 @@ class VelocityPlanner:
         # Compute the time gap point, assuming our velocity is held constant at
         # the minimum of the desired speed and the ego vehicle's velocity, from
         # the closest point to the lead vehicle on our planned path.
-        desired_speed = min(lead_car_state[2], desired_speed)
+        desired_speed = round(max(min(lead_car_state[2], desired_speed), 0.0),1)
+        distance_ego_lead = np.linalg.norm([ego_state[0] - lead_car_state[0],ego_state[1] - lead_car_state[1]])
+        wait = abs(desired_speed) > 0.05 and abs(start_speed) < 0.05 and distance_ego_lead < constants.MIN_DEPARTURE_DISTANCE
+
         delta_desired_speed = abs(desired_speed - start_speed)
         ramp_end_index = min_index
         distance = min_dist
@@ -375,14 +383,13 @@ class VelocityPlanner:
 
         vi = start_speed
         m = (desired_speed - vi)/max_distance
-        print(m)
         for i in range(ramp_end_index):
             dist = np.linalg.norm([path[0][i+1] - path[0][i], 
                                 path[1][i+1] - path[1][i]])
             if desired_speed > start_speed:
-                vf = calc_final_speed(vi, self._a_max, dist)
+                vf = calc_final_speed(vi, self._a_max, dist) if not wait else start_speed
             else:
-                vf = min(desired_speed, vi + m * dist)
+                vf = max(desired_speed, vi + m * dist)
 
             profile.append([path[0][i], path[1][i], vi])
             vi = vf
@@ -391,7 +398,7 @@ class VelocityPlanner:
         # If we can't get there using a_max, do an abrupt change in the profile
         # to use the controller to decelerate more quickly.
         for i in range(ramp_end_index, len(path[0])):
-            profile.append([path[0][i], path[1][i], desired_speed])
+            profile.append([path[0][i], path[1][i], desired_speed if not wait else start_speed])
 
         return profile
 

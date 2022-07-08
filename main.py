@@ -970,6 +970,10 @@ def exec_waypoint_nav_demo(args):
                                             current_timestamp, frame)
                     controller.update_controls()
                     cmd_throttle, cmd_steer, cmd_brake = controller.get_commands()
+                    if abs(controller._desired_speed) < 0.1 and abs(current_speed) < 0.1:
+                        cmd_throttle = 0.0
+                        cmd_steer = 0.0
+                        cmd_brake = 1.0
                 else:
                     cmd_throttle = 0.0
                     cmd_steer = 0.0
