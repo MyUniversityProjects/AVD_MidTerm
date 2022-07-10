@@ -7,6 +7,7 @@
 import cutils
 import numpy as np
 import math
+import constants
 
 class Controller2D(object):
     def __init__(self, waypoints):
@@ -167,7 +168,7 @@ class Controller2D(object):
             # PID CONTROL - PARAMETERS
             ######################################################
 
-            Ts = 0.033      # Sample time - 30FPS <-> 1/30
+            Ts = 1/constants.FPS      # Sample time - 30FPS <-> 1/30
 
             kp = 0.5        # Proportional Gain
             ki = 0.42       # Integral Gain
@@ -211,9 +212,9 @@ class Controller2D(object):
             # STANLEY CONTROL - PARAMETERS
             ######################################################
 
-            k_e = 0.6
+            k_e = 0.15
             k_v = 10
-            heading_lookahead = 500
+            heading_lookahead = 650
             
             ######################################################
             # STANLEY CONTROL - ALGORITHM

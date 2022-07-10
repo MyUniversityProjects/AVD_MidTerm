@@ -51,10 +51,17 @@ class VehicleAdapter:
         self.agent = agent
         self.id = agent.id
         v = agent.vehicle
-        self.pos = [v.transform.location.x, v.transform.location.y, v.transform.location.z]
+        self.pos = np.array([v.transform.location.x, v.transform.location.y])
         self.yaw = math.radians(v.transform.rotation.yaw)
         self.speed = v.forward_speed
         self.distance = optimized_dist(ego_state, self.pos)
+        self.real_distance = None
+
+    @property
+    def real_dist(self):
+        if self.real_distance is None:
+            self.real_distance = math.sqrt(self.distance)
+        return self.real_distance
 
     def __str__(self):
         return f'Vehicle(id={self.id}, pos={self.pos}, yaw={self.yaw}, speed={self.speed}, distance={self.distance})'
