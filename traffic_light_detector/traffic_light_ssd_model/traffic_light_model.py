@@ -19,23 +19,16 @@ class ModelName(Enum):
 
 
 class TrafficLightModel:
+    MODEL_INPUT_SHAPE = (300, 300)
+
     def __init__(self, model_name: ModelName):
         self._model_name = model_name
         self._model_path = TrafficLightModel.build_model_path(model_name)
         self._graph = TrafficLightModel.load_model(self._model_path)
+        self.predict = self.make_predicter()
 
     def _run_inference(self, sess, ops, image_tensor, image) -> List[BoundBox]:
-        # output_dict = {}
-
-        # time_s = time.time()
-        num_detections, boxes, scores, classes = sess.run(ops, feed_dict={image_tensor: image})
-        # time_t = time.time() - time_s
-
-        # output_dict['num_detections'] = int(num_detections[0])
-        # output_dict['detection_classes'] = classes[0].astype(np.uint8)
-        # output_dict['detection_boxes'] = boxes[0]
-        # output_dict['detection_scores'] = scores[0]
-        # output_dict['detection_time'] = time_t
+        _, boxes, scores, classes = sess.run(ops, feed_dict={image_tensor: image})
 
         detection_classes = classes[0].astype(np.uint8)
         detection_boxes = [(box[1], box[0], box[3], box[2]) for box in boxes[0]]
@@ -43,7 +36,7 @@ class TrafficLightModel:
 
         return [BoundBox(*args) for args in zip(detection_boxes, detection_classes, detection_scores)]
 
-    def predict(self, image: np.ndarray):
+    def make_predicter(self):
         with self._graph.as_default():
             image_tensor = self._graph.get_tensor_by_name('image_tensor:0')
             boxes_tensor = self._graph.get_tensor_by_name('detection_boxes:0')
@@ -53,10 +46,14 @@ class TrafficLightModel:
 
             ops = [detections_tensor, boxes_tensor, scores_tensor, classes_tensor]
 
-            with tf.compat.v1.Session() as sess:
+            sess = tf.compat.v1.Session()
+            # Actual detection.
+            def _run_inference(image):
                 image_np_expanded = np.expand_dims(image, axis=0)
-                # Actual detection.
                 return self._run_inference(sess, ops, image_tensor, image_np_expanded)
+            # workaround to avoid lazy loading
+            _run_inference(np.zeros((300, 300, 3)))
+            return _run_inference
 
     @staticmethod
     def load_model(model_path: str) -> tf.Graph:
@@ -72,7 +69,6 @@ class TrafficLightModel:
     @staticmethod
     def build_model_path(model_name):
         return str(Path(__file__).parent.joinpath(f'models/{model_name.value}/frozen_inference_graph.pb'))
-        return os.path.join('models', model_name.value, "frozen_inference_graph.pb")
 
 
 
