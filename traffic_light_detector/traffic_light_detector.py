@@ -1,40 +1,50 @@
 import itertools
 import math
-import time
 from pathlib import Path
 from typing import *
 
 import numpy as np
 
 from helpers import optimized_dist
-from .traffic_light_model.yolo import YOLO
+from .traffic_light_yolo_model.yolo import YOLO
+from .traffic_light_ssd_model import TrafficLightModel, ModelName
+from .boundbox import BoundBox
 import json
 
 
 class TrafficLightDetector:
     # Configuration
-    CONFIG_PATH = Path(__file__).parent.joinpath('traffic_light_model/config.json')
-    SAVED_MODEL_PATH = Path(__file__).parent.joinpath('traffic_light_model/checkpoints/traffic-light-detection.h5')
+    CONFIG_PATH = Path(__file__).parent.joinpath('traffic_light_yolo_model/config.json')
+    SAVED_MODEL_PATH = Path(__file__).parent.joinpath('traffic_light_yolo_model/checkpoints/traffic-light-detection.h5')
     # Params
     MODEL_INPUT_SHAPE = (416, 416)
     TRAFFIC_SIGN_VALUE = 12
     THRESHOLD = 0.26
-    ENLARGE_RATIO = 1.8
     SMALL_WINDOW_SIZE_THRESHOLD = 100
     ENLARGE_TARGET_AREA_RATIO = 0.0005
 
     def __init__(self):
-        with open(self.CONFIG_PATH, 'r') as f:
-            config = json.load(f)
-        config['model']['saved_model_name'] = str(self.SAVED_MODEL_PATH)
-        self.labels = config['model']['classes']
-        self.model = YOLO(config)
+        self.model = None
+        self._model_type = None
 
         self._offset_w1 = self.MODEL_INPUT_SHAPE[0] // 2
         self._offset_h1 = self.MODEL_INPUT_SHAPE[1] // 2
         self._th = min(self.MODEL_INPUT_SHAPE) * 0.5
         self._opt_th = self._th ** 2
         self._win_size = self.MODEL_INPUT_SHAPE[::-1]
+
+        self.load_ssd_model()
+
+    def load_yolo_model(self):
+        with open(self.CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+        config['model']['saved_model_name'] = str(self.SAVED_MODEL_PATH)
+        self.model = YOLO(config)
+        self._model_type = 'y'
+
+    def load_ssd_model(self):
+        self.model = TrafficLightModel(ModelName.SSD_MOBILENET_V1)
+        self._model_type = 's'
 
     def detect(self, image, seg_image):
         win_images = list(self.find_semaphores(image, seg_image))
@@ -62,7 +72,6 @@ class TrafficLightDetector:
                 curr_offset[0] = int(curr_offset[0] * side_multi)
                 curr_offset[1] = int(curr_offset[1] * side_multi)
 
-                print('HeHe', size, side_multi, win_size, img_size)
                 new_coords = self.get_window_coords(c, curr_offset, img_size, win_size)
                 update_map[i] = (*new_coords, size)
 
@@ -73,9 +82,11 @@ class TrafficLightDetector:
 
     def predict_on_image_window(self, image):
         boxes = self.model.predict(image)
+        if self._model_type == 'y':
+            boxes = [BoundBox.from_yolo_boundbox(box) for box in boxes]
         if len(boxes) > 0:
-            print([box.c for box in boxes])
-        boxes = [box for box in boxes if box.c > self.THRESHOLD]
+            print([box.score for box in boxes])
+        boxes = [box for box in boxes if box.score > self.THRESHOLD]
         return self.draw_boxes(image, boxes)
 
     def find_semaphores(self, image, seg_image):
@@ -168,7 +179,7 @@ class TrafficLightDetector:
 
                 start_i = int(p1[0] * ratio1 + p2[0] * ratio2)
                 start_j = int(p1[1] * ratio1 + p2[1] * ratio2)
-                # start_i, start_j = (p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2
+
                 end_i = start_i + self._win_size[0]
                 end_j = start_j + self._win_size[1]
                 comb_win_images.append((start_i, end_i, start_j, end_j, tot_size))
@@ -187,18 +198,17 @@ class TrafficLightDetector:
             if box.xmin > image_w or box.ymin > image_h:
                 continue
 
-            box.xmin = max(box.xmin, 0)
-            box.xmax = self.clamp(box.xmax, 0, image_w - 1)
-            box.ymin = max(box.ymin, 0)
-            box.ymax = self.clamp(box.ymax, 0, image_h - 1)
-
             xmin = int(box.xmin * image_w)
             ymin = int(box.ymin * image_h)
             xmax = int(box.xmax * image_w)
             ymax = int(box.ymax * image_h)
 
-            label = self.labels[box.get_label()]
-            color = (0, 255, 0) if label == 'go' else (255, 0, 0)
+            xmin = max(xmin, 0)
+            xmax = self.clamp(xmax, 0, image_w - 1)
+            ymin = max(ymin, 0)
+            ymax = self.clamp(ymax, 0, image_h - 1)
+
+            color = box.color
 
             res[ymin:ymax, xmin] = np.array(color)
             res[ymin:ymax, xmax] = np.array(color)
