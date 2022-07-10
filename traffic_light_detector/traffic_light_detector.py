@@ -1,3 +1,4 @@
+from enum import Enum
 import itertools
 import math
 from pathlib import Path
@@ -7,7 +8,7 @@ import numpy as np
 
 from helpers import optimized_dist
 from .traffic_light_yolo_model.yolo import YOLO
-from .traffic_light_ssd_model import TrafficLightModel, ModelName
+from .traffic_light_ssd_model import TrafficLightModel, ModelName as SSDModelName
 from .boundbox import BoundBox
 import json
 
@@ -17,34 +18,39 @@ class TrafficLightDetector:
     CONFIG_PATH = Path(__file__).parent.joinpath('traffic_light_yolo_model/config.json')
     SAVED_MODEL_PATH = Path(__file__).parent.joinpath('traffic_light_yolo_model/checkpoints/traffic-light-detection.h5')
     # Params
-    MODEL_INPUT_SHAPE = (416, 416)
     TRAFFIC_SIGN_VALUE = 12
     THRESHOLD = 0.26
     SMALL_WINDOW_SIZE_THRESHOLD = 100
     ENLARGE_TARGET_AREA_RATIO = 0.0005
 
-    def __init__(self):
-        self.model = None
-        self._model_type = None
+    class ModelName(Enum):
+        YOLO = True
+        SSD = False
 
-        self._offset_w1 = self.MODEL_INPUT_SHAPE[0] // 2
-        self._offset_h1 = self.MODEL_INPUT_SHAPE[1] // 2
-        self._th = min(self.MODEL_INPUT_SHAPE) * 0.5
+    def __init__(self, model_name: ModelName):
+        self.model_name = model_name
+        self.model = self.load_model(model_name)
+
+        self._offset_w1 = self.model.MODEL_INPUT_SHAPE[0] // 2
+        self._offset_h1 = self.model.MODEL_INPUT_SHAPE[1] // 2
+        self._th = min(self.model.MODEL_INPUT_SHAPE) * 0.5
         self._opt_th = self._th ** 2
-        self._win_size = self.MODEL_INPUT_SHAPE[::-1]
+        self._win_size = self.model.MODEL_INPUT_SHAPE[::-1]
 
-        self.load_ssd_model()
+    def load_model(self, model_name: ModelName):
+        if model_name == self.ModelName.YOLO:
+            return self.load_yolo_model()
+        elif model_name == self.ModelName.SSD_MOBILENET_V1:
+            return self.load_ssd_model()
 
     def load_yolo_model(self):
         with open(self.CONFIG_PATH, 'r') as f:
             config = json.load(f)
         config['model']['saved_model_name'] = str(self.SAVED_MODEL_PATH)
-        self.model = YOLO(config)
-        self._model_type = 'y'
+        return YOLO(config)
 
     def load_ssd_model(self):
-        self.model = TrafficLightModel(ModelName.SSD_MOBILENET_V1)
-        self._model_type = 's'
+        return TrafficLightModel(SSDModelName.SSD_MOBILENET_V1)
 
     def detect(self, image, seg_image):
         win_images = list(self.find_semaphores(image, seg_image))
@@ -82,12 +88,10 @@ class TrafficLightDetector:
 
     def predict_on_image_window(self, image):
         boxes = self.model.predict(image)
-        if self._model_type == 'y':
+        if self.model_name == self.ModelName.YOLO:
             boxes = [BoundBox.from_yolo_boundbox(box) for box in boxes]
-        if len(boxes) > 0:
-            print([box.score for box in boxes])
         boxes = [box for box in boxes if box.score > self.THRESHOLD]
-        return self.draw_boxes(image, boxes)
+        return self.draw_boxes(image, [b for b in [max(boxes, key=lambda b:b.score, default=None)] if b is not None])
 
     def find_semaphores(self, image, seg_image):
         check_matrix = np.zeros(seg_image.shape, dtype=np.uint8)
