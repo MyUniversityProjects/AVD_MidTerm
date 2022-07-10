@@ -459,6 +459,7 @@ def exec_waypoint_nav_demo(args):
         enable_live_plot = demo_opt.get('live_plotting', 'true').capitalize() == 'True'
         live_plot_period = float(demo_opt.get('live_plotting_period', 0))
         enable_stanley_controller = demo_opt.get('use_stanley_controller', 'true').capitalize() == 'True'
+        use_yolo_detector = demo_opt.get('use_stanley_controller', 'true').capitalize() == 'True'
 
         # Set options
         live_plot_timer = Timer(live_plot_period)
@@ -800,7 +801,7 @@ def exec_waypoint_nav_demo(args):
 
         # Initialize orientation memory
         interface = Interface(render_interval=SHOW_INTERVAL, show=SHOW_CAMERA, slots=2)
-        tl_detector = TrafficLightDetector()
+        tl_detector = TrafficLightDetector(TrafficLightDetector.ModelName(use_yolo_detector))
         # recorder = Recorder()
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
