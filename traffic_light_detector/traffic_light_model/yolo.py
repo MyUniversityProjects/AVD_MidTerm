@@ -1,3 +1,4 @@
+import cv2
 from keras.models import Model, load_model
 from keras.layers import Reshape, Lambda, Conv2D, Input, MaxPooling2D, BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
@@ -146,13 +147,16 @@ class YOLO(object):
             layer.set_weights(model.get_layer(index=idx).get_weights())
             idx += 1
 
-    def preprocess_image(self, rgb_image):
-        image = rgb_image / 255.0
+    def preprocess_image(self, image, image_h, image_w):
+        h, w, *_ = image.shape
+        if h != image_h or w != image_w:
+            image = cv2.resize(image, (image_h, image_w))
+        image = image / 255.0
         image = np.expand_dims(image, 0)
         return image
 
     def predict(self, rgb_image):
-        image = self.preprocess_image(rgb_image)
+        image = self.preprocess_image(rgb_image, self.image_h, self.image_w)
 
         dummy_array = np.zeros((1, 1, 1, 1, self.max_box_per_image, 4))
         netout = self.model.predict([image, dummy_array])[0]

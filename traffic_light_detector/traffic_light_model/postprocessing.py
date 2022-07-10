@@ -76,7 +76,7 @@ def draw_boxes(image, boxes, labels):
 
     for box in boxes:
 
-        if box.xmin>image_w or box.xmax>image_w or box.ymin>image_h or box.ymax>image_h:
+        if box.xmin > image_w or box.xmax > image_w or box.ymin > image_h or box.ymax > image_h:
             continue
 
         if (box.xmin<0): box.xmin = 0
