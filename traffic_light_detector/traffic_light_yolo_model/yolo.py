@@ -5,10 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, Callback
 from tensorflow.keras.optimizers import SGD, Adam, RMSprop
 import tensorflow as tf
-
-config = tf.ConfigProto()
-config.gpu_options.allow_growth=True
-sess = tf.Session(config=config)
+# tf.compat.v1.disable_eager_execution()
 
 
 import os
@@ -77,6 +74,7 @@ class TinyYoloFeature:
 
 
 class YOLO(object):
+    MODEL_INPUT_SHAPE = (416, 416)
     def __init__(self, config):
 
         self.config = config
@@ -136,6 +134,8 @@ class YOLO(object):
             pretrained.get_layer('DetectionLayer').get_weights())"""
 
         self.model.load_weights(config['model']['saved_model_name'])
+        # workaround to avoid lazy loading
+        self.predict(np.zeros((*self.MODEL_INPUT_SHAPE, 3)))
 
 
 
