@@ -22,6 +22,7 @@ class TrafficLightDetector:
     THRESHOLD = 0.26
     SMALL_WINDOW_SIZE_THRESHOLD = 100
     ENLARGE_TARGET_AREA_RATIO = 0.0005
+    AREA_RATIO_THRESHOLD = 0.20
 
     class ModelName(Enum):
         YOLO = True
@@ -40,7 +41,7 @@ class TrafficLightDetector:
     def load_model(self, model_name: ModelName):
         if model_name == self.ModelName.YOLO:
             return self.load_yolo_model()
-        elif model_name == self.ModelName.SSD_MOBILENET_V1:
+        elif model_name == self.ModelName.SSD:
             return self.load_ssd_model()
 
     def load_yolo_model(self):
@@ -57,8 +58,26 @@ class TrafficLightDetector:
         win_images = self.merge_windows(win_images)
         win_images = self.enlarge_small_windows(image, win_images)
         images = self.extract_windows(image, win_images)
-        images = list(map(self.predict_on_image_window, images))
-        return list(images[i] if i < len(images) else None for i in range(3))
+        boxes = list(map(self.predict_on_image_window, images))
+
+        data = [(image, box) for image, box, win_image in zip(images, boxes, win_images) if box is not None and self.check_area_ratio(box, win_image, seg_image)]
+        return data
+        # images = [self.draw_box(*args) for args in data]
+        # return list(images[i] if i < len(images) else None for i in range(3))
+
+    def check_area_ratio(self, box, win_image, seg_image):
+        start_i, end_i, start_j, end_j, _ = win_image
+        h, w = end_i - start_i, end_j - start_j
+
+        box.xmin = int((box.xmin * w) + start_j)
+        box.xmax = int((box.xmax * w) + start_j)
+        box.ymin = int((box.ymin * h) + start_i)
+        box.ymax = int((box.ymax * h) + start_i)
+
+        box_area = (box.xmax - box.xmin) * (box.ymax - box.ymin)
+        traffic_sign_area = np.sum(seg_image[box.ymin:box.ymax, box.xmin:box.xmax] == self.TRAFFIC_SIGN_VALUE)
+        ratio = traffic_sign_area / box_area
+        return ratio > self.AREA_RATIO_THRESHOLD
 
     def enlarge_small_windows(self, image, win_images):
         h, w, *_ = image.shape
@@ -91,7 +110,7 @@ class TrafficLightDetector:
         if self.model_name == self.ModelName.YOLO:
             boxes = [BoundBox.from_yolo_boundbox(box) for box in boxes]
         boxes = [box for box in boxes if box.score > self.THRESHOLD]
-        return self.draw_boxes(image, [b for b in [max(boxes, key=lambda b:b.score, default=None)] if b is not None])
+        return max(boxes, key=lambda b: b.score, default=None)
 
     def find_semaphores(self, image, seg_image):
         check_matrix = np.zeros(seg_image.shape, dtype=np.uint8)
@@ -194,30 +213,34 @@ class TrafficLightDetector:
     def extract_windows(src_image, win_images):
         return [src_image[start_i:end_i, start_j:end_j, ...] for start_i, end_i, start_j, end_j, _ in win_images]
 
-    def draw_boxes(self, image, boxes):
+    def draw_box(self, image, box, border=2):
         image_h, image_w, _ = image.shape
-        res = image.copy()
+        if box.xmin > image_w or box.ymin > image_h:
+            return
+        res = image
 
-        for box in boxes:
-            if box.xmin > image_w or box.ymin > image_h:
-                continue
+        # xmin = int(box.xmin * image_w)
+        # ymin = int(box.ymin * image_h)
+        # xmax = int(box.xmax * image_w)
+        # ymax = int(box.ymax * image_h)
 
-            xmin = int(box.xmin * image_w)
-            ymin = int(box.ymin * image_h)
-            xmax = int(box.xmax * image_w)
-            ymax = int(box.ymax * image_h)
+        xmin = box.xmin
+        ymin = box.ymin
+        xmax = box.xmax
+        ymax = box.ymax
 
-            xmin = max(xmin, 0)
-            xmax = self.clamp(xmax, 0, image_w - 1)
-            ymin = max(ymin, 0)
-            ymax = self.clamp(ymax, 0, image_h - 1)
+        xmin = max(xmin, 0)
+        xmax = self.clamp(xmax, 0, image_w - 1)
+        ymin = max(ymin, 0)
+        ymax = self.clamp(ymax, 0, image_h - 1)
 
-            color = box.color
+        color = box.color
 
-            res[ymin:ymax, xmin] = np.array(color)
-            res[ymin:ymax, xmax] = np.array(color)
-            res[ymin, xmin:xmax] = np.array(color)
-            res[ymax, xmin:xmax] = np.array(color)
+        res[ymin:ymax, xmin:xmin+border] = np.array(color)
+        res[ymin:ymax, xmax:xmax+border] = np.array(color)
+        res[ymin:ymin+border, xmin:xmax] = np.array(color)
+        res[ymax:ymax+border, xmin:xmax] = np.array(color)
+
         return res
 
     @staticmethod

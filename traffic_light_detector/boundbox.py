@@ -42,3 +42,9 @@ class BoundBox:
             cy = (self.ymin + self.ymax) / 2
             self._center = cx, cy
         return self._center
+
+    def __str__(self):
+        return f'({self.xmin}, {self.ymin}, {self.xmax}, {self.ymax})'
+
+    def __repr__(self):
+        return str(self)

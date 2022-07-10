@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 
 from interface import Interface
-from traffic_light_detector import TrafficLightDetector
+from traffic_light_detector import TrafficLightDetector, TrafficLightTracker
 from utils import Recorder
 
 CLASSES = {
@@ -22,9 +22,9 @@ CLASSES = {
     12: [220, 220, 0]  # TrafficSigns
 }
 
-IMG_SIZE = 416
+IMG_SIZE = 700
 SHOW_INTERVAL = 0.001
-JUMP_FRAMES = 120 * 25
+JUMP_FRAMES = 120 * 1
 FRAMES_PATH = Path(__file__).parent.joinpath('frames.h5')
 
 
@@ -36,13 +36,13 @@ def get_rgb_seg_image(array):
 
 
 def main():
-    interface = Interface(render_interval=SHOW_INTERVAL, slots=4, img_size=(IMG_SIZE, IMG_SIZE))
-    tl_detector = TrafficLightDetector()
+    interface = Interface(render_interval=SHOW_INTERVAL, slots=1, img_size=(IMG_SIZE, IMG_SIZE))
+    tl_detector = TrafficLightTracker(TrafficLightDetector.ModelName.YOLO)
     recorder = Recorder()
 
     for rgb_img, seg_img in recorder.iter_frames(jump=JUMP_FRAMES):
-        rgb_images = tl_detector.detect(rgb_img, seg_img)
-        interface.show_images(images=(rgb_img, *rgb_images))
+        rgb_image = tl_detector.detect(rgb_img, seg_img)
+        interface.show_images(images=[rgb_image])
 
     print('Done.')
 
