@@ -57,7 +57,7 @@ class TrafficLightTracker(TrafficLightDetector):
         # 6 - Create new objects
         for i in unassociated_blobs:
             blob = blobs[i]
-            kf = BoundBoxKalmanFilter(blob[1])
+            kf = BoundBoxKalmanFilter(blob[1], dt=16, std_acc=2560, std_pred=0.1, std_meas=1)
             obj = TrackerObject(box=blob[1], ttl=self.TTL, tte=1, kalman_filter=kf)
             self._objects.append(obj)
         # Draw boxes

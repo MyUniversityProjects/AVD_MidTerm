@@ -44,7 +44,8 @@ class BoundBox:
         return self._center
 
     def __str__(self):
-        return f'({self.xmin}, {self.ymin}, {self.xmax}, {self.ymax})'
+        c = self.center
+        return f'({c[0]}, {c[1]}, {self.xmin}, {self.ymin}, {self.xmax}, {self.ymax})'
 
     def __repr__(self):
         return str(self)

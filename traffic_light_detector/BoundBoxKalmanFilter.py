@@ -55,7 +55,7 @@ class BoundBoxKalmanFilter:
         if box is not None:
             self._box = box
             z = box.center
-        print(f'z={z}')
+
         self._f.predict()
         self._f.update(np.array(z).reshape((2, 1)))
 

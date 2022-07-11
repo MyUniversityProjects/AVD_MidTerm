@@ -1,5 +1,7 @@
 # Project
 frames.h5
+measures.json
+log.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

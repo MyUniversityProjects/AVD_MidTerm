@@ -18,3 +18,12 @@ def count_time(name: Text, hide=False):
     max_val, min_val = max(mem), min(mem)
     if not hide:
         print(f'{name} --> Elapsed=({elapsed}ms) Mean=({mean}ms) Max=({max_val}ms) Min=({min_val}ms)')
+
+
+@contextmanager
+def fixed_time(amt: float):
+    start = time.time()
+    yield
+    sleep_time = amt - (time.time() - start)
+    if sleep_time > 0.01:
+        time.sleep(sleep_time)
