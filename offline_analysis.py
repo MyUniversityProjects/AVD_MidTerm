@@ -22,9 +22,9 @@ CLASSES = {
     12: [220, 220, 0]  # TrafficSigns
 }
 
-IMG_SIZE = 700
+IMG_SIZE = 900
 SHOW_INTERVAL = 0.001
-JUMP_FRAMES = 120 * 1
+JUMP_FRAMES = 120 * 25
 FRAMES_PATH = Path(__file__).parent.joinpath('frames.h5')
 
 

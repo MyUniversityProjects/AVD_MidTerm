@@ -213,7 +213,7 @@ class TrafficLightDetector:
     def extract_windows(src_image, win_images):
         return [src_image[start_i:end_i, start_j:end_j, ...] for start_i, end_i, start_j, end_j, _ in win_images]
 
-    def draw_box(self, image, box, border=2):
+    def draw_box(self, image, box, border=2, color=None):
         image_h, image_w, _ = image.shape
         if box.xmin > image_w or box.ymin > image_h:
             return
@@ -234,7 +234,8 @@ class TrafficLightDetector:
         ymin = max(ymin, 0)
         ymax = self.clamp(ymax, 0, image_h - 1)
 
-        color = box.color
+        if color is None:
+            color = box.color
 
         res[ymin:ymax, xmin:xmin+border] = np.array(color)
         res[ymin:ymax, xmax:xmax+border] = np.array(color)
