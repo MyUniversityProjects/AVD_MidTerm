@@ -15,11 +15,24 @@ class TrackerObject:
     ttl: int
     tte: int
     kalman_filter: BoundBoxKalmanFilter
+    state_list: List[int] = dataclasses.field(default_factory=list)
+
+    def enqueue_state(self, state, ttc):
+        if len(self.state_list) >= ttc:
+            self.state_list.pop(0)
+        self.state_list.append(state)
+        
+        vals,counts = np.unique(self.state_list, return_counts=True)
+        return vals[np.argmax(counts)]
 
 
 class TrafficLightTracker(TrafficLightDetector):
-    TTL = 5
-    TTE = 3
+    # Time To Live
+    TTL = 10
+    # Time To Enter
+    TTE = 5
+    # State history
+    TTC = 9
     MAX_DIST = 160 ** 2
     THRESHOLD = 0.1
 
@@ -27,7 +40,7 @@ class TrafficLightTracker(TrafficLightDetector):
         super().__init__(*args, **kwargs)
         self._objects: List[TrackerObject] = []
 
-    def detect(self, image, seg_image) -> Tuple[np.ndarray, List[BoundBox]]:
+    def track(self, image, seg_image) -> Tuple[np.ndarray, List[BoundBox]]:
         # 1 - Retrieve new blobs
         blobs = super().detect(image, seg_image)
         if len(blobs) == 0 and len(self._objects) == 0:
@@ -51,8 +64,7 @@ class TrafficLightTracker(TrafficLightDetector):
         for j in unassociated_objects:
             obj = self._objects[j]
             obj.ttl -= 1
-            if obj.tte > 1:
-                obj.kalman_filter.predict()
+            obj.kalman_filter.predict()
         self._objects = [o for o in self._objects if o.ttl > 0]
         # 6 - Create new objects
         for i in unassociated_blobs:
@@ -92,6 +104,8 @@ class TrafficLightTracker(TrafficLightDetector):
     def _update_object(self, blob, obj):
         obj.ttl = self.TTL  # Reset object TTL
         obj.tte = min(obj.tte + 1, self.TTE)
+        most_common_state = obj.enqueue_state(blob[1].pred_class, self.TTC)
+        blob[1].pred_class = most_common_state
         obj.box = blob[1]
         obj.kalman_filter.predict(blob[1])
 
@@ -106,7 +120,7 @@ class TrafficLightTracker(TrafficLightDetector):
     def _get_similarity(cls, blob, obj: TrackerObject):
         _, blob_box = blob
         blob_c = blob_box.center
-        obj_c = obj.box.center
+        obj_c = obj.kalman_filter.new_measure
         dist = optimized_dist(blob_c, obj_c)
 
         return max(1 - dist / cls.MAX_DIST, 0)

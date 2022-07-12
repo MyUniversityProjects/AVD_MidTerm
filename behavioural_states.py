@@ -275,7 +275,10 @@ class EmergencyState(BehaviouralState):
 
     @staticmethod
     def _compute_brake_value(speed, distance):
-        ratio = constants.BRAKE_PARAM * speed / distance - 0.2
+        if speed < 1:
+            ratio = 1
+        else:
+            ratio = constants.BRAKE_PARAM * speed / distance - 0.2
         ratio = max(min(ratio, 1), 0)
         logging.info(f'SPEED={speed:.2f} DISTANCE={distance:.2f} => EMERGENCY_BRAKE={ratio:.2f}')
         return ratio

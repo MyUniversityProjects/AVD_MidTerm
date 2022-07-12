@@ -15,11 +15,15 @@ class BoundBoxKalmanFilter:
         self._f = self._create_kalman_filter()
 
         self._old_measure = None
-        self._new_measure = None
+        self._new_measure = box.center
 
     @property
     def old_measure(self):
         return self._old_measure
+
+    @property
+    def new_measure(self):
+        return self._new_measure
 
     def _create_kalman_filter(self):
         c = self._box.center

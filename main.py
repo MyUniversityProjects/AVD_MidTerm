@@ -17,7 +17,7 @@ import controller2d_AR as controller2d_stanley
 import controller2d as controller2d_pid
 import configparser
 
-from custom_agents import TrafficLightAdapter, VehicleAdapter
+from custom_agents import VehicleAdapter
 import local_planner
 import behavioural_planner
 from math import sin, cos, pi, tan, sqrt
@@ -43,8 +43,8 @@ from carla.planner.city_track import CityTrack
 ###############################################################################
 # CONFIGURABLE PARAMENTERS DURING EXAM
 ###############################################################################
-PLAYER_START_INDEX = 59          #  spawn index for player
-DESTINATION_INDEX = 24          # Setting a Destination HERE
+PLAYER_START_INDEX = int(os.environ.get("SI", "5"))          #  spawn index for player
+DESTINATION_INDEX = int(os.environ.get("DI", "24"))          # Setting a Destination HERE
 NUM_PEDESTRIANS        = 100     # total number of pedestrians to spawn
 NUM_VEHICLES           = 100     # total number of vehicles to spawn
 SEED_PEDESTRIANS       = 14      # seed for pedestrian spawn randomizer
@@ -801,7 +801,7 @@ def exec_waypoint_nav_demo(args):
 
         # Initialize orientation memory
         interface = Interface(render_interval=SHOW_INTERVAL, show=SHOW_CAMERA, slots=1, img_size=(900, 900))
-        tl_detector = TrafficLightTracker(TrafficLightDetector.ModelName(use_yolo_detector))
+        tl_tracker = TrafficLightTracker(TrafficLightTracker.ModelName(use_yolo_detector))
         cam_geo = CameraGeometry(camera_parameters)
         # recorder = Recorder()
         for frame in range(TOTAL_EPISODE_FRAMES):
@@ -811,9 +811,6 @@ def exec_waypoint_nav_demo(args):
                 delay_counter -= 1
                 send_control_command(client, throttle=0, steer=0, brake=0)
                 continue
-
-            traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
-            traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
 
             # UPDATE HERE the obstacles list
             obstacles = []
@@ -853,26 +850,12 @@ def exec_waypoint_nav_demo(args):
             seg_image = sensor_data.get('CameraSemanticSegmentation', None)
             depth_image = sensor_data.get('CameraDepth', None)
             new_rgb_image = None
-            new_traffic_lights = []
+            boxes = []
             if rgb_image is not None and seg_image is not None and depth_image is not None:
                 rgb_image = image_converter.to_rgb_array(rgb_image)
                 seg_image = image_converter.to_bgra_array(seg_image)[:, :, 2]
                 # recorder.save_frame(rgb_image, seg_image)
-                new_rgb_image, boxes = tl_detector.detect(rgb_image, seg_image)
-
-                curr_pos = current_x, current_y
-                for box in boxes:
-                    # Get coords of traffic sign
-                    __gen = ((j, i) for i in range(box.ymin, box.ymax) for j in range(box.xmin, box.xmax) if seg_image[i, j] == TrafficLightDetector.TRAFFIC_SIGN_VALUE)
-                    point = next(__gen, None)
-
-                    if point is not None:
-                        x, y = point
-                        depth_image = image_converter.depth_to_array(depth_image)
-                        traffic_light_fences = cam_geo.get_traffic_light_fences(depth_image, *curr_pos, current_yaw, x, y)
-                        new_traffic_lights.append((box, traffic_light_fences, depth_image[y][x] * 1000))
-                        # real_tl = min(traffic_lights, key=lambda tl: optimized_dist(tl.position, curr_pos))
-                        # print(depth_image[y][x], traffic_light_fences, real_tl.position[:2])
+                new_rgb_image, boxes = tl_tracker.track(rgb_image, seg_image)
 
             interface.show_images(images=[new_rgb_image])
 
@@ -892,6 +875,25 @@ def exec_waypoint_nav_demo(args):
                 # Calculate the goal state set in the local frame for the local planner.
                 # Current speed should be open loop for the velocity profile generation.
                 ego_state = [current_x, current_y, current_yaw, open_loop_speed]
+
+                # Retrieve all traffic lights
+                new_traffic_lights = []
+                if seg_image is not None and depth_image is not None:
+                    curr_pos = current_x, current_y
+                    depth_image = image_converter.depth_to_array(depth_image)
+                    for box in boxes:
+                        # Get coords of traffic sign
+                        xmin = max(0, box.xmin)
+                        xmax = min(box.xmax, depth_image.shape[1])
+                        ymin = max(0, box.ymin)
+                        ymax = min(box.ymin, depth_image.shape[0])
+                        __gen = ((j, i) for i in range(ymin, ymax) for j in range(xmin, xmax) if seg_image[i, j] == TrafficLightTracker.TRAFFIC_SIGN_VALUE)
+                        point = next(__gen, None)
+
+                        if point is not None:
+                            x, y = point
+                            traffic_light_fences = cam_geo.get_traffic_light_fences(depth_image, *curr_pos, current_yaw, x, y)
+                            new_traffic_lights.append((box, traffic_light_fences, depth_image[y][x] * 1000))
 
                 # Retrieve all pedestrians
                 pedestrians = [a.pedestrian for a in measurement_data.non_player_agents if a.HasField('pedestrian')]
