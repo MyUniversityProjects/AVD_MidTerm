@@ -26,21 +26,21 @@ class BehaviouralState(ABC):
         pass
 
     def check_for_traffic_lights(self, waypoints, ego_state, closed_loop_speed, closest_index, goal_index, traffic_lights):
-        tl = [i for i in traffic_lights if i.state != TrafficLightAdapter.GREEN]
-        agents = [i.get_segment() for i in tl]
+        tl = [i for i in traffic_lights if not i[0].is_green]
+        agents = [i[1] for i in tl]
         new_goal_index, index = check_for_path_intersection(waypoints, closest_index, goal_index, agents)
         found = index >= 0
         if found:
             traffic_light = tl[index]
-            p1, p2 = np.array(ego_state[:2]), np.array(traffic_light.position[:2])
-            ori = np.array([math.cos(ego_state[2]), math.sin(ego_state[2])])
-            direction_vec = p2 - p1
-            angle = angle_between(ori, direction_vec)
-
-            d = math.sqrt(optimized_dist(p1, p2)) * math.cos(angle)
+            # p1, p2 = np.array(ego_state[:2]), np.array(traffic_light.position[:2])
+            # ori = np.array([math.cos(ego_state[2]), math.sin(ego_state[2])])
+            # direction_vec = p2 - p1
+            # angle = angle_between(ori, direction_vec)
+            #
+            # d = math.sqrt(optimized_dist(p1, p2)) * math.cos(angle)
+            d = traffic_light[2]
             if d < closed_loop_speed / constants.TRAFFIC_LIGHT_STOP_CONSTANT:
                 return goal_index, False
-            self._bp.set_traffic_light_id(traffic_light.id)
         return new_goal_index, found
 
     @staticmethod
@@ -126,7 +126,11 @@ class BehaviouralState(ABC):
                 break
             wp_index += 1
 
-        return wp_index % len(waypoints)
+        start_goal_index = wp_index % len(waypoints)
+        while waypoints[start_goal_index][2] <= 0.1:
+            start_goal_index += 1
+
+        return start_goal_index
 
     @staticmethod
     def _is_green(tl_id, traffic_lights):
@@ -164,8 +168,6 @@ class TrackSpeedState(BehaviouralState):
         # Next, find the goal index that lies within the lookahead distance
         # along the waypoints.
         goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
-        while waypoints[goal_index][2] <= 0.1:
-            goal_index += 1
 
         goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closed_loop_speed,
                                                                         closest_index, goal_index, traffic_lights)
@@ -194,16 +196,21 @@ class DecelerateToPointState(BehaviouralState):
     def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         # Second, find the closest index to the ego vehicle.
         closest_len, closest_index = get_closest_index(waypoints, ego_state)
-        tl_id = self._bp.get_traffic_light_id()
 
         if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians) or self._check_dangerous_vehicles(
                 ego_state, waypoints, closed_loop_speed, vehicles):
             self._state_manager.state_transition(EmergencyState.NAME)
         elif abs(closed_loop_speed) <= constants.STOP_THRESHOLD:
             self._state_manager.state_transition(StopState.NAME)
-        elif tl_id is None or self._is_green(tl_id, traffic_lights):
-            self._bp.set_traffic_light_id(None)
-            self._state_manager.state_transition(TrackSpeedState.NAME)
+        else:
+            goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
+            goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closed_loop_speed,
+                                                                            closest_index, goal_index, traffic_lights)
+            if not traffic_light_found:
+                # goal_state = waypoints[goal_index]
+                # self._bp.set_goal_index(goal_index)
+                # self._bp.set_goal_state(goal_state)
+                self._state_manager.state_transition(TrackSpeedState.NAME)
 
 
 class StopState(BehaviouralState):
@@ -218,12 +225,13 @@ class StopState(BehaviouralState):
     def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
         # We have stayed stopped until traffic light turns green and there
         # aren't any pedestrian.
-        tl_id = self._bp.get_traffic_light_id()
-        if tl_id is None or self._is_green(tl_id, traffic_lights):
-            _, closest_index = get_closest_index(waypoints, ego_state)
-            if self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians) is None:
-                self._bp.set_traffic_light_id(None)
-                self._state_manager.state_transition(TrackSpeedState.NAME)
+        closest_len, closest_index = get_closest_index(waypoints, ego_state)
+        goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
+        goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closed_loop_speed,
+                                                                        closest_index, goal_index, traffic_lights)
+        dangerous_pedestrian = self._check_dangerous_pedestrians(ego_state, waypoints, closest_index, pedestrians)
+        if not traffic_light_found and dangerous_pedestrian is None:
+            self._state_manager.state_transition(TrackSpeedState.NAME)
 
 
 class EmergencyState(BehaviouralState):

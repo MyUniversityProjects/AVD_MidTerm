@@ -48,11 +48,6 @@ class Interface:
                 image[start_i:start_i+self.img_h, start_j:start_j+self.img_w, :] = img
             start_i, start_j = self._next_starts(start_i, start_j, self.img_h, self.img_w)
 
-        # if self.show_seg:
-        #     if seg_image is not None:
-        #         image[start_i:start_i+self.BOX_SIZE, start_j:start_j+self.BOX_SIZE, :] = image_converter.labels_to_cityscapes_palette(seg_image)
-        #     start_i, start_j = self._next_starts(start_i, start_j)
-        #
         # if self.show_depth:
         #     if depth_image is not None:
         #         image[start_i:start_i+self.BOX_SIZE, start_j:start_j+self.BOX_SIZE, :] = image_converter.depth_to_logarithmic_grayscale(depth_image)

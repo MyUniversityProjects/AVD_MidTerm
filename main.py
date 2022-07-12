@@ -24,8 +24,8 @@ from math import sin, cos, pi, tan, sqrt
 import constants
 
 # Script level imports
-from helpers import ego_lead_intersect, filter_lead_vehicle_orientation, is_vehicle_in_fov, optimized_dist
-from traffic_light_detector import TrafficLightDetector
+from helpers import ego_lead_intersect, is_vehicle_in_fov, optimized_dist
+from traffic_light_detector import TrafficLightDetector, TrafficLightTracker, CameraGeometry
 from utils import Recorder
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
@@ -800,8 +800,9 @@ def exec_waypoint_nav_demo(args):
         cmd_brake = 0.0
 
         # Initialize orientation memory
-        interface = Interface(render_interval=SHOW_INTERVAL, show=SHOW_CAMERA, slots=2)
-        tl_detector = TrafficLightDetector(TrafficLightDetector.ModelName(use_yolo_detector))
+        interface = Interface(render_interval=SHOW_INTERVAL, show=SHOW_CAMERA, slots=1, img_size=(900, 900))
+        tl_detector = TrafficLightTracker(TrafficLightDetector.ModelName(use_yolo_detector))
+        cam_geo = CameraGeometry(camera_parameters)
         # recorder = Recorder()
         for frame in range(TOTAL_EPISODE_FRAMES):
             # Gather current data from the CARLA server
@@ -810,17 +811,6 @@ def exec_waypoint_nav_demo(args):
                 delay_counter -= 1
                 send_control_command(client, throttle=0, steer=0, brake=0)
                 continue
-
-            rgb_image = sensor_data.get('CameraRGB', None)
-            seg_image = sensor_data.get('CameraSemanticSegmentation', None)
-            new_rgb_image = None
-            if rgb_image is not None and seg_image is not None:
-                rgb_image = image_converter.to_rgb_array(rgb_image)
-                seg_image = image_converter.to_bgra_array(seg_image)[:, :, 2]
-                # recorder.save_frame(rgb_image, seg_image)
-                new_rgb_image = tl_detector.detect(rgb_image, seg_image)
-
-            interface.show_images(images=[rgb_image, *new_rgb_image])
 
             traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
             traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
@@ -858,6 +848,33 @@ def exec_waypoint_nav_demo(args):
                                                  prev_collision_pedestrians,
                                                  prev_collision_other)
             collided_flag_history.append(collided_flag)
+
+            rgb_image = sensor_data.get('CameraRGB', None)
+            seg_image = sensor_data.get('CameraSemanticSegmentation', None)
+            depth_image = sensor_data.get('CameraDepth', None)
+            new_rgb_image = None
+            new_traffic_lights = []
+            if rgb_image is not None and seg_image is not None and depth_image is not None:
+                rgb_image = image_converter.to_rgb_array(rgb_image)
+                seg_image = image_converter.to_bgra_array(seg_image)[:, :, 2]
+                # recorder.save_frame(rgb_image, seg_image)
+                new_rgb_image, boxes = tl_detector.detect(rgb_image, seg_image)
+
+                curr_pos = current_x, current_y
+                for box in boxes:
+                    # Get coords of traffic sign
+                    __gen = ((j, i) for i in range(box.ymin, box.ymax) for j in range(box.xmin, box.xmax) if seg_image[i, j] == TrafficLightDetector.TRAFFIC_SIGN_VALUE)
+                    point = next(__gen, None)
+
+                    if point is not None:
+                        x, y = point
+                        depth_image = image_converter.depth_to_array(depth_image)
+                        traffic_light_fences = cam_geo.get_traffic_light_fences(depth_image, *curr_pos, current_yaw, x, y)
+                        new_traffic_lights.append((box, traffic_light_fences, depth_image[y][x] * 1000))
+                        # real_tl = min(traffic_lights, key=lambda tl: optimized_dist(tl.position, curr_pos))
+                        # print(depth_image[y][x], traffic_light_fences, real_tl.position[:2])
+
+            interface.show_images(images=[new_rgb_image])
 
             # Execute the behaviour and local planning in the current instance
             # Note that updating the local path during every controller update
@@ -909,7 +926,7 @@ def exec_waypoint_nav_demo(args):
                     orientation_memory.update_new(v.id, v.yaw)
 
                 # Perform a state transition in the behavioural planner.
-                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, moving_vehicles, traffic_lights)
+                bp.transition_state(waypoints, ego_state, current_speed, pedestrians, moving_vehicles, new_traffic_lights)
 
                 if not bp.in_emergency() or not bp.in_stop():
                     # Check to see if we need to follow the lead vehicle.

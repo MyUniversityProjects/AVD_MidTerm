@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import dataclasses
 import numpy as np
@@ -27,11 +27,11 @@ class TrafficLightTracker(TrafficLightDetector):
         super().__init__(*args, **kwargs)
         self._objects: List[TrackerObject] = []
 
-    def detect(self, image, seg_image):
+    def detect(self, image, seg_image) -> Tuple[np.ndarray, List[BoundBox]]:
         # 1 - Retrieve new blobs
         blobs = super().detect(image, seg_image)
         if len(blobs) == 0 and len(self._objects) == 0:
-            return image
+            return image, []
         # 2 - Compute similarity matrix
         similarity_mat = self._build_similarity_matrix(blobs)
         # 3 - Unmark blobs and objects
@@ -87,7 +87,7 @@ class TrafficLightTracker(TrafficLightDetector):
 
                 box = BoundBox((start_j, start_i, end_j, end_i), pred_class=-1, score=-1)
                 image = super().draw_box(image, box, color=(0, 0, 255))
-        return image
+        return image, [o.box for o in actual_objects]
 
     def _update_object(self, blob, obj):
         obj.ttl = self.TTL  # Reset object TTL

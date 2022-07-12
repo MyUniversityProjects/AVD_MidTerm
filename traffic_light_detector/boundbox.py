@@ -1,8 +1,14 @@
 class BoundBox:
+    YOLO_GREEN = 0
+    YOLO_RED = 1
     YOLO_CLASS_TO_COLOR = {
         0: (0, 255, 0),
         1: (255, 0, 0),
     }
+
+    SSD_GREEN = 1
+    SSD_YELLOW = 2
+    SSD_RED = 3
     SSD_CLASS_TO_COLOR = {
         1: (0, 255, 0),
         2: (255, 255, 0),
@@ -42,6 +48,18 @@ class BoundBox:
             cy = (self.ymin + self.ymax) / 2
             self._center = cx, cy
         return self._center
+
+    @property
+    def is_red(self):
+        return (self.YOLO_RED if self.from_yolo else self.SSD_RED) == self.pred_class
+
+    @property
+    def is_yellow(self):
+        return not self.from_yolo and self.SSD_YELLOW == self.pred_class
+
+    @property
+    def is_green(self):
+        return (self.YOLO_GREEN if self.from_yolo else self.SSD_GREEN) == self.pred_class
 
     def __str__(self):
         c = self.center
