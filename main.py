@@ -25,7 +25,7 @@ import constants
 
 # Script level imports
 from helpers import ego_lead_intersect, is_vehicle_in_fov, optimized_dist
-from traffic_light_detector import TrafficLightDetector, TrafficLightTracker, CameraGeometry
+from traffic_light_detector import TrafficLightTracker, CameraGeometry
 from utils import Recorder
 
 sys.path.append(os.path.abspath(sys.path[0] + '/..'))
@@ -793,7 +793,7 @@ def exec_waypoint_nav_demo(args):
         prev_collision_other       = 0
 
         wait_seconds = START_DELAY
-        delay_counter = wait_seconds * 30
+        delay_counter = wait_seconds * constants.FPS
 
         cmd_throttle = 0.0
         cmd_steer = 0.0
