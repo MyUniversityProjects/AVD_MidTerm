@@ -124,8 +124,8 @@ camera_parameters = {}
 camera_parameters['x'] = 1.8
 camera_parameters['y'] = 1.3
 camera_parameters['z'] = 1.3
-camera_parameters['width'] = 1200
-camera_parameters['height'] = 1200
+camera_parameters['width'] = 800
+camera_parameters['height'] = 800
 camera_parameters['fov'] = 90
 
 def rotate_x(angle):
@@ -1025,14 +1025,15 @@ def exec_waypoint_nav_demo(args):
                                             current_timestamp, frame)
                     controller.update_controls()
                     cmd_throttle, cmd_steer, cmd_brake = controller.get_commands()
-                    if abs(controller._desired_speed) < 0.1 and abs(current_speed) < 0.1:
-                        cmd_throttle = 0.0
-                        cmd_steer = 0.0
-                        cmd_brake = 1.0
                 else:
                     cmd_throttle = 0.0
                     cmd_steer = 0.0
                     cmd_brake = 0.0
+
+                if abs(controller._desired_speed) < 0.1 and abs(current_speed) < constants.STOP_THRESHOLD:
+                    cmd_throttle = 0.0
+                    cmd_steer = 0.0
+                    cmd_brake = 1.0
 
             # Skip the first frame or if there exists no local paths
             if skip_first_frame and frame == 0:
