@@ -17,7 +17,7 @@ import controller2d_AR as controller2d_stanley
 import controller2d as controller2d_pid
 import configparser
 
-from custom_agents import VehicleAdapter
+from custom_agents import VehicleAdapter, TrafficLightAdapter
 import local_planner
 import behavioural_planner
 from math import sin, cos, pi, tan, sqrt
@@ -55,7 +55,7 @@ SHOW_INTERVAL          = 1
 ITER_FOR_SIM_TIMESTEP  = 10     # no. iterations to compute approx sim timestep
 WAIT_TIME_BEFORE_START = 0.00   # game seconds (time before controller start)
 START_DELAY            = 0      # s
-TOTAL_RUN_TIME         = 5000.00 # game seconds (total runtime before sim end)
+TOTAL_RUN_TIME         = 120.00 # game seconds (total runtime before sim end)
 TOTAL_FRAME_BUFFER     = 300    # number of frames to buffer after total runtime
 CLIENT_WAIT_TIME       = 3      # wait time for client before starting episode
 DESIRED_SPEED = 8.0
@@ -812,6 +812,9 @@ def exec_waypoint_nav_demo(args):
                 send_control_command(client, throttle=0, steer=0, brake=0)
                 continue
 
+            # traffic_lights = (i for i in measurement_data.non_player_agents if i.HasField("traffic_light"))
+            # traffic_lights = [TrafficLightAdapter(i) for i in traffic_lights]
+
             # UPDATE HERE the obstacles list
             obstacles = []
 
@@ -877,6 +880,8 @@ def exec_waypoint_nav_demo(args):
                 ego_state = [current_x, current_y, current_yaw, open_loop_speed]
 
                 # Retrieve all traffic lights
+                # closest_traffic_light = min(traffic_lights, key=lambda x: optimized_dist(x.position, ego_state[0:2]))
+                # print(f"closest tl coordinates: {closest_traffic_light.position}")
                 new_traffic_lights = []
                 if seg_image is not None and depth_image is not None:
                     curr_pos = current_x, current_y
@@ -886,13 +891,15 @@ def exec_waypoint_nav_demo(args):
                         xmin = max(0, box.xmin)
                         xmax = min(box.xmax, depth_image.shape[1])
                         ymin = max(0, box.ymin)
-                        ymax = min(box.ymin, depth_image.shape[0])
+                        ymax = min(box.ymax, depth_image.shape[0])
+                        # print(np.unique([seg_image[i, j] for i in range(ymin, ymax) for j in range(xmin, xmax)]))
                         __gen = ((j, i) for i in range(ymin, ymax) for j in range(xmin, xmax) if seg_image[i, j] == TrafficLightTracker.TRAFFIC_SIGN_VALUE)
                         point = next(__gen, None)
-
+                        # print(f"point {point} box {box}")
                         if point is not None:
                             x, y = point
                             traffic_light_fences = cam_geo.get_traffic_light_fences(depth_image, *curr_pos, current_yaw, x, y)
+                            # print(f"closest fences: {traffic_light_fences}, ego_state: {ego_state}")
                             new_traffic_lights.append((box, traffic_light_fences, depth_image[y][x] * 1000))
 
                 # Retrieve all pedestrians
@@ -900,13 +907,13 @@ def exec_waypoint_nav_demo(args):
                 ped_locs = (p.transform.location for p in pedestrians)
                 distances = (optimized_dist(ego_state, [loc.x, loc.y]) for loc in ped_locs)
                 pedestrians = zip(pedestrians, distances)
-                pedestrians = [ped for ped in pedestrians if ped[1] < 500]  # Ignore very far pedestrians
+                pedestrians = [ped for ped in pedestrians if ped[1] < constants.NEIGHBOR_PEDESTRIAN_OPT_DISTANCE]  # Ignore very far pedestrians
                 pedestrians = sorted(pedestrians, key=lambda ped: ped[1])
 
                 # Retrieve all other vehicles
                 orientation_memory.next_step()
                 vehicles = (VehicleAdapter(a, ego_state) for a in measurement_data.non_player_agents if a.HasField('vehicle'))
-                vehicles = (v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_OPT_DISTANCE)
+                vehicles = (v for v in vehicles if v.distance < VehicleAdapter.NEIGHBOR_VEHICLE_OPT_DISTANCE)
                 vehicles = (v for v in vehicles if is_vehicle_in_fov(v, ego_state))
                 vehicles = sorted(vehicles, key=lambda v: v.distance)
                     

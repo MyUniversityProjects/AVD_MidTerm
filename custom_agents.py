@@ -2,6 +2,7 @@ import numpy as np
 import math
 
 from helpers import optimized_dist
+import constants
 
 
 class TrafficLightAdapter:
@@ -44,8 +45,7 @@ class TrafficLightAdapter:
 
 
 class VehicleAdapter:
-    # TODO: Change 30
-    NEIGHBOR_OPT_DISTANCE = 30 ** 2
+    NEIGHBOR_VEHICLE_OPT_DISTANCE = constants.NEIGHBOR_VEHICLE_DISTANCE ** 2
 
     def __init__(self, agent, ego_state):
         self.agent = agent

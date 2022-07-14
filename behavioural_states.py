@@ -27,21 +27,11 @@ class BehaviouralState(ABC):
 
     def check_for_traffic_lights(self, waypoints, ego_state, closed_loop_speed, closest_index, goal_index, traffic_lights):
         tls = [i for i in traffic_lights if not i[0].is_green]
-        # sem_ego_dist = 10
-        # tls = [i for i in traffic_lights if optimized_dist(ego_state, i[1][:2]) < sem_ego_dist**2]
-        # if len(tls) > 0:
-        #     print("Traffic light considered")
         agents = [i[1] for i in tls]
         new_goal_index, index = check_for_path_intersection(waypoints, closest_index, goal_index, agents)
         found = index >= 0
         if found:
             traffic_light = tls[index]
-            # p1, p2 = np.array(ego_state[:2]), np.array(traffic_light.position[:2])
-            # ori = np.array([math.cos(ego_state[2]), math.sin(ego_state[2])])
-            # direction_vec = p2 - p1
-            # angle = angle_between(ori, direction_vec)
-            #
-            # d = math.sqrt(optimized_dist(p1, p2)) * math.cos(angle)
             d = traffic_light[2] - 1
             # d = (v^2 - v0^2) / 2*a
             if d < closed_loop_speed ** 2 / constants.TRAFFIC_LIGHT_STOP_CONSTANT:
@@ -212,9 +202,6 @@ class DecelerateToPointState(BehaviouralState):
             goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closed_loop_speed,
                                                                             closest_index, goal_index, traffic_lights)
             if not traffic_light_found:
-                # goal_state = waypoints[goal_index]
-                # self._bp.set_goal_index(goal_index)
-                # self._bp.set_goal_state(goal_state)
                 self._state_manager.state_transition(TrackSpeedState.NAME)
 
 

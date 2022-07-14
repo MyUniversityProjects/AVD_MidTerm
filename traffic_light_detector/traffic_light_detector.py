@@ -11,7 +11,7 @@ from .traffic_light_yolo_model.yolo import YOLO
 from .traffic_light_ssd_model import TrafficLightModel, ModelName as SSDModelName
 from .boundbox import BoundBox
 import json
-
+import constants
 
 class TrafficLightDetector:
     # Configuration
@@ -22,7 +22,7 @@ class TrafficLightDetector:
     THRESHOLD = 0.26
     SMALL_WINDOW_SIZE_THRESHOLD = 100
     ENLARGE_TARGET_AREA_RATIO = 0.0005
-    AREA_RATIO_THRESHOLD = 0.20
+    AREA_RATIO_THRESHOLD = constants.AREA_RATIO_THRESHOLD
 
     class ModelName(Enum):
         YOLO = True

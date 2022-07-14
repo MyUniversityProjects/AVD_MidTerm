@@ -71,7 +71,7 @@ def segment_intersect(p11, p12, p21, p22):
     return False
 
 
-def is_vehicle_in_fov(v, ego_state, fov_angle=math.pi * 3/2):
+def is_vehicle_in_fov(v, ego_state, fov_angle=constants.EGO_DANGEROUS_VEHICLE_FOV):
     """Check if the vehicle is the lead vehicle."""
 
     vec_diff = v.pos[0] - ego_state[0], v.pos[1] - ego_state[1]
@@ -104,32 +104,6 @@ def filter_lead_vehicle_orientation(measurement_data, ego_state):
                 lead_car_speed.append(agent.vehicle.forward_speed)
                 lead_car_dist.append(curr_dist)
     return list(zip(lead_car_pos, lead_car_length, lead_car_speed, lead_car_dist))
-
-
-def filter_neighbor_vehicles(measurement_data, ego_state):
-    """Obtain Neighbor Vehicle information."""
-    neighbor_car_pos = []
-    neighbor_car_length = []
-    neighbor_car_speed = []
-    neighbor_car_dist = []
-    for agent in measurement_data.non_player_agents:
-        if agent.HasField('vehicle'):
-            transform = agent.vehicle.transform
-            pos = [transform.location.x, transform.location.y]
-            yaw = math.radians(transform.rotation.yaw)
-
-            future_pos = move_along_orientation(pos, yaw, distance=2.6)
-
-            curr_dist = optimized_dist(pos, ego_state)
-            future_dist = optimized_dist(future_pos, ego_state)
-            is_ahead = curr_dist < future_dist
-
-            if is_ahead and min(abs(ego_state[2] - yaw), abs(ego_state[2] + yaw)) < math.pi / 4:
-                neighbor_car_pos.append(pos)
-                neighbor_car_length.append(agent.vehicle.bounding_box.extent.x)
-                neighbor_car_speed.append(agent.vehicle.forward_speed)
-                neighbor_car_dist.append(curr_dist)
-    return list(zip(neighbor_car_pos, neighbor_car_length, neighbor_car_speed, neighbor_car_dist))
 
 
 def check_for_path_intersection(waypoints, closest_index, goal_index, agents):
@@ -268,7 +242,7 @@ def ego_trajectory_intersect(ego_state, ped, waypoints, closest_index, ego_looka
 def ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, orientation_memory, waypoints, ego_lookahead=10, vehicle_lookahead=10):
     vehicle_pos = vehicle.pos[:2]
     yaw_difference = orientation_memory.get_yaw_difference(vehicle.id)
-    max_iter = 1 if yaw_difference < 0.05 else 5
+    max_iter = 1 if yaw_difference < 0.05 else constants.VEHICLE_ROTATION_FRAMES
     cur_yaw = vehicle.yaw
     cur_pos = np.array(ego_state[:2])
 
@@ -309,34 +283,6 @@ def ego_vehicle_trajectory_intersect(ego_state, vehicle, closed_loop_speed, orie
 # Compute the waypoint index that is closest to the ego vehicle, and return
 # it as well as the distance from the ego vehicle to that waypoint.
 def get_closest_index(waypoints, ego_state):
-    """Gets closest index a given list of waypoints to the vehicle position.
-
-    args:
-        waypoints: current waypoints to track. (global frame)
-            length and speed in m and m/s.
-            (includes speed to track at each x,y location.)
-            format: [[x0, y0, v0],
-                     [x1, y1, v1],
-                     ...
-                     [xn, yn, vn]]
-            example:
-                waypoints[2][1]:
-                returns the 3rd waypoint's y position
-
-                waypoints[5]:
-                returns [x5, y5, v5] (6th waypoint)
-        ego_state: ego state vector for the vehicle. (global frame)
-            format: [ego_x, ego_y, ego_yaw, ego_open_loop_speed]
-                ego_x and ego_y     : position (m)
-                ego_yaw             : top-down orientation [-pi to pi]
-                ego_open_loop_speed : open loop speed (m/s)
-
-    returns:
-        [closest_len, closest_index]:
-            closest_len: length (m) to the closest waypoint from the vehicle.
-            closest_index: index of the waypoint which is closest to the vehicle.
-                i.e. waypoints[closest_index] gives the waypoint closest to the vehicle.
-    """
     closest_len = float('Inf')
     closest_index = 0
 
@@ -350,10 +296,10 @@ def get_closest_index(waypoints, ego_state):
     return closest_len, closest_index
 
 
-def ego_lead_intersect(ego_state, vehicles, waypoints, closed_loop_speed, ego_lookahead=0.5):
+def ego_lead_intersect(ego_state, vehicles, waypoints, closed_loop_speed, ego_lookahead=constants.EGO_LEAD_LOOKAHEAD_FACTOR):
     # vehicles must be sorted by distances to ego
     ego_lookahead = ego_lookahead * closed_loop_speed if closed_loop_speed > 1 else ego_lookahead
-    ego_lookahead += 15
+    ego_lookahead += constants.EGO_LEAD_MIN_LOOKAHEAD
     _, closest_index = get_closest_index(waypoints, ego_state)
     points = _get_ego_trajectory_points(ego_state, waypoints, closest_index)
     len_counter = 0
@@ -373,7 +319,7 @@ def ego_lead_intersect(ego_state, vehicles, waypoints, closed_loop_speed, ego_lo
             if segment_intersect(wp_1, wp_2, vehicle.pos - offset_vec, vehicle.pos + offset_vec):
 
                 yaw_difference = angle_between(wp_2-wp_1, np.array(move_along_orientation((0, 0), vehicle.yaw, 1)))
-                if yaw_difference < math.pi / 4.0:
+                if yaw_difference < constants.MAX_LEAD_YAW_DIFFERENCE:
                     return vehicle
         len_counter += wp_len
     return None
