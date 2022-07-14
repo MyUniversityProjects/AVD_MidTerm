@@ -255,6 +255,19 @@ class EmergencyState(BehaviouralState):
         self._last_is_stopped = False
 
     def handle(self, waypoints, ego_state, closed_loop_speed, pedestrians, vehicles, traffic_lights):
+        closest_len, closest_index = get_closest_index(waypoints, ego_state)
+        goal_index = self._get_goal_index(waypoints, ego_state, closest_len, closest_index)
+        goal_index, traffic_light_found = self.check_for_traffic_lights(waypoints, ego_state, closed_loop_speed,
+                                                                        closest_index, goal_index, traffic_lights)
+        goal_state = waypoints[goal_index]
+        if traffic_light_found:
+            logging.info("TrafficLight found!")
+            self._state_manager.state_transition(DecelerateToPointState.NAME)
+            goal_state = goal_state[:]
+            goal_state[2] = 0
+            self._bp.set_goal_index(goal_index)
+            self._bp.set_goal_state(goal_state)
+
         speed = abs(closed_loop_speed)
         curr_is_stopped = speed <= constants.STOP_THRESHOLD
 
@@ -267,6 +280,8 @@ class EmergencyState(BehaviouralState):
             if distance is not None:
                 brake_value = self._compute_brake_value(speed, distance)
                 self._bp.set_emergency_brake_value(brake_value)
+            else:
+                self._state_manager.state_transition(TrackSpeedState.NAME)
 
         if curr_is_stopped and not self._last_is_stopped:
             logging.info('Starting emergency timer')
