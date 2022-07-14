@@ -28,11 +28,11 @@ class TrackerObject:
 
 class TrafficLightTracker(TrafficLightDetector):
     # Time To Live
-    TTL = 10
+    TTL = 15
     # Time To Enter
     TTE = 5
-    # State history
-    TTC = 9
+    # Time to Change
+    TTC = 15
     MAX_DIST = 160 ** 2
     THRESHOLD = 0.1
 
